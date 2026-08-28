@@ -1,0 +1,186 @@
+{
+  "safetyreportversion": "3",
+  "safetyreportid": "10085268",
+  "primarysourcecountry": "DK",
+  "occurcountry": "DK",
+  "transmissiondateformat": "102",
+  "transmissiondate": "20141212",
+  "reporttype": "1",
+  "serious": "1",
+  "seriousnessdeath": "1",
+  "seriousnesshospitalization": "1",
+  "receivedateformat": "102",
+  "receivedate": "20140417",
+  "receiptdateformat": "102",
+  "receiptdate": "20140610",
+  "fulfillexpeditecriteria": "1",
+  "companynumb": "DK-ABBVIE-14P-044-1227467-00",
+  "duplicate": "1",
+  "reportduplicate": {
+    "duplicatesource": "ABBVIE",
+    "duplicatenumb": "DK-ABBVIE-14P-044-1227467-00"
+  },
+  "primarysource": {
+    "reportercountry": "COUNTRY NOT SPECIFIED",
+    "qualification": "3"
+  },
+  "sender": {
+    "sendertype": "2",
+    "senderorganization": "FDA-Public Use"
+  },
+  "receiver": {
+    "receivertype": "6",
+    "receiverorganization": "FDA"
+  },
+  "patient": {
+    "patientonsetage": "24",
+    "patientonsetageunit": "801",
+    "patientsex": "1",
+    "reaction": [
+      {
+        "reactionmeddraversionpt": "17.0",
+        "reactionmeddrapt": "Carotid artery occlusion",
+        "reactionoutcome": "5"
+      },
+      {
+        "reactionmeddraversionpt": "17.0",
+        "reactionmeddrapt": "Intracranial venous sinus thrombosis",
+        "reactionoutcome": "5"
+      },
+      {
+        "reactionmeddraversionpt": "17.0",
+        "reactionmeddrapt": "Drug abuse",
+        "reactionoutcome": "5"
+      },
+      {
+        "reactionmeddraversionpt": "17.0",
+        "reactionmeddrapt": "Infarction"
+      }
+    ],
+    "drug": [
+      {
+        "drugcharacterization": "1",
+        "medicinalproduct": "TESTOSTERONE UNDECANOATE",
+        "drugbatchnumb": "UNKNOWN",
+        "drugauthorizationnumb": "021015",
+        "drugadministrationroute": "065",
+        "drugindication": "PRODUCT USED FOR UNKNOWN INDICATION",
+        "actiondrug": "5",
+        "openfda": {
+          "application_number": [
+            "NDA208088",
+            "NDA213953",
+            "NDA206089",
+            "NDA022219"
+          ],
+          "brand_name": [
+            "TLANDO",
+            "KYZATREX",
+            "JATENZO",
+            "AVEED"
+          ],
+          "generic_name": [
+            "TESTOSTERONE UNDECANOATE"
+          ],
+          "manufacturer_name": [
+            "Verity Pharmaceuticals Inc.",
+            "Marius Pharmaceuticals",
+            "TOLMAR Inc.",
+            "Endo USA, Inc."
+          ],
+          "product_ndc": [
+            "74676-0112",
+            "80603-103",
+            "80603-101",
+            "80603-105",
+            "69087-158",
+            "69087-198",
+            "69087-237",
+            "67979-511"
+          ],
+          "product_type": [
+            "HUMAN PRESCRIPTION DRUG"
+          ],
+          "route": [
+            "ORAL",
+            "INTRAMUSCULAR"
+          ],
+          "substance_name": [
+            "TESTOSTERONE UNDECANOATE"
+          ],
+          "rxcui": [
+            "2599054",
+            "2599060",
+            "2609597",
+            "2609603",
+            "2609605",
+            "2609607",
+            "2609609",
+            "2609611",
+            "2121766",
+            "2121768",
+            "2121770",
+            "2121776",
+            "2201640",
+            "2201642",
+            "1490661",
+            "1490667"
+          ],
+          "spl_id": [
+            "2bcfa6a9-635f-6bc9-ec72-839cca27541e",
+            "413922db-74d9-ab1f-e063-6394a90aba28",
+            "9db3c914-8c33-4b65-86d3-5dc5c775b00b",
+            "da249940-81ef-4af3-8c59-4697e0404e71"
+          ],
+          "spl_set_id": [
+            "4b0b92e9-6d3c-a0e5-e1c7-342999f72580",
+            "7f7167a7-2a25-47e2-acf5-33f499fce971",
+            "ed7b5d41-7475-4c10-99b9-b62b3434ae60",
+            "f80f025b-17d8-40af-8739-20ce07902045"
+          ],
+          "package_ndc": [
+            "74676-0112-2",
+            "80603-101-22",
+            "80603-101-11",
+            "80603-103-22",
+            "80603-103-11",
+            "80603-105-22",
+            "80603-105-11",
+            "80603-105-33",
+            "69087-158-12",
+            "69087-198-12",
+            "69087-237-12",
+            "69087-237-28",
+            "67979-511-43"
+          ],
+          "unii": [
+            "H16A5VCT9C"
+          ]
+        }
+      },
+      {
+        "drugcharacterization": "1",
+        "medicinalproduct": "STANOZOLOL",
+        "drugbatchnumb": "UNKNOWN",
+        "drugindication": "PRODUCT USED FOR UNKNOWN INDICATION",
+        "actiondrug": "5"
+      },
+      {
+        "drugcharacterization": "1",
+        "medicinalproduct": "METHANE DROSTENOLONE",
+        "drugbatchnumb": "UNKNOWN",
+        "drugindication": "PRODUCT USED FOR UNKNOWN INDICATION",
+        "actiondrug": "5"
+      },
+      {
+        "drugcharacterization": "1",
+        "medicinalproduct": "NANDROLONE DECANOATE",
+        "drugbatchnumb": "UNKNOWN",
+        "drugdosagetext": "FREQUENCY UNKNOWN",
+        "drugadministrationroute": "065",
+        "drugindication": "PRODUCT USED FOR UNKNOWN INDICATION",
+        "actiondrug": "5"
+      }
+    ]
+  }
+}

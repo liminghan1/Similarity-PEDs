@@ -118,15 +118,49 @@ drifts toward these must be stopped and flagged, not implemented.
       tests) + 1 missingness-analysis CSV test + 1 chemistry test (`connectivity_inchikey_block`),
       61 total, all passing.
 
-## Phase 6 — FAERS pipeline (not started)
-- [ ] openFDA ingestion (`pipelines/faers/`), manageable initial time window, designed to scale.
-- [ ] `docs/faers_deduplication.md` — documented dedup method using case/version identifiers (original records
-      preserved, never dropped by exact-row-equality).
-- [ ] Drug-name normalization against the alias hierarchy (Phase 3), with `mapping_method`/`mapping_confidence`
-      logged per `faers_drugs` row.
-- [ ] Adverse-event term extraction (`faers_reactions`), seriousness/outcome extraction.
-- [ ] Conservative therapeutic-vs-misuse classification (`pipelines/faers/classification.py`,
-      `report_classifications`) per `research/exclusion_rules.md` §6.
+## Phase 6 — FAERS pipeline ✅ (2026-08-28)
+- [x] `docs/faers_deduplication.md` — documents both distinct duplication phenomena in FAERS
+      (version history vs. cross-source duplicate reports), the live empirical investigation that
+      determined openFDA's `safetyreportid` already reflects the latest version per case (367/367
+      unique in a full query result set; querying by exact `safetyreportid` returns exactly one
+      record), and the defensive post-ingestion max-version-per-case_id pass implemented anyway.
+- [x] `pipelines/faers/client.py` — openFDA REST client. Confirmed live (not assumed):
+      240 req/min + 1,000 req/day without a key; `limit=1000` exactly requires a key even though
+      `limit=999` does not (undocumented quirk); `skip` capped at 25,000; OR-grouped multi-term
+      queries work, letting one combined query per compound (canonical name + all aliases + all
+      formulation names) replace one-request-per-alias.
+- [x] `pipelines/faers/normalization.py` — 5-tier drug-name matching (exact/curated/normalized-
+      string/fuzzy/ambiguous-flagged-for-review) against the Phase 3 alias hierarchy, correctly
+      distinguishing formulation-scoped from parent-level aliases. **Caught and fixed a real
+      false-positive class**: fuzzy matching initially conflated `ANDROSTANOLONE` (=DHT) with
+      drostanolone and `TRIENOLONE` (=methyltrienolone) with trenbolone -- both chemically
+      distinct real compounds, found by manually auditing live match output, fixed via a targeted
+      `KNOWN_DISTINCT_COMPOUNDS` block-list (not a raised threshold, which would have also killed
+      correct matches in the same confidence range) — see pipelines/faers/README.md.
+- [x] `pipelines/faers/reactions.py` — `reactionoutcome` code → label mapping (ICH E2B(R2)
+      standard, cross-checked against multiple independent sources since no single FDA data
+      dictionary page enumerating the codes could be located).
+- [x] `pipelines/faers/classification.py` — conservative therapeutic/misuse/multi-AAS/unknown
+      classifier per `research/exclusion_rules.md` §6: multi-AAS co-reporting alone never
+      triggers MISUSE (only contributes alongside an independent evidence type), misuse evidence
+      takes precedence over a co-occurring therapeutic indication, full evidence trail stored as
+      JSON. Version-stamped (`classifier_version="v1"`).
+- [x] `pipelines/faers/ingest.py` — orchestrates client + normalization + classification;
+      `MAX_REPORTS_PER_COMPOUND=5000` scope cap (only testosterone exceeds it; true uncapped
+      totals always recorded in `etl_runs.notes`).
+- [x] **Run against the live API and DB (corrected, post-fix run)**: 7,433 reports inserted
+      across all 10 cohort compounds. **Every compound clears the >=20-report minimum** — a sharp
+      contrast with Phase 5's receptor-bioactivity coverage (6/10 compounds had zero usable
+      measurements), worth highlighting in the research report. Alias-based OR-queries
+      dramatically improved recall over a bare-canonical-name search (e.g. methandienone:
+      4 reports for "methandienone" alone vs. 151 once "Dianabol"/"Methane"/etc. were included).
+      Classification distribution: 6,099 unknown, 554 misuse, 450 therapeutic, 332 multi-AAS —
+      per-compound patterns track known pharmacology (trenbolone/drostanolone, never approved for
+      human therapeutic use, show heavy misuse skew and near-zero therapeutic classifications).
+- [x] Real fixture-based tests: two real FAERS records saved as fixtures (a therapeutic
+      nandrolone-for-haemolytic-anaemia case; a fatal real multi-AAS misuse case with an explicit
+      "Drug abuse" reaction term) drive `backend/tests/test_faers_parsing.py`. 91 new tests total
+      across normalization/classification/reactions/parsing, 112 passing overall.
 
 ## Phase 7 — Safety signal calculations ✅ *(statistics implemented and unit-tested; not yet run on real data)*
 - [x] `backend/app/analytics/signals.py::compute_ror` — ROR/logROR/SE/CI per project brief Sec. 11, explicit

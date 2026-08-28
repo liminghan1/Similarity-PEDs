@@ -2,6 +2,7 @@ canonical_name,formulation_name,alias,alias_type,source,verified,curation_note
 testosterone,,17beta-hydroxyandrost-4-en-3-one,chemical_name,curated_seed_v1,False,IUPAC-style chemical name; pending formal citation cross-check.
 testosterone,,Test,abbreviation,curated_seed_v1,False,Common colloquial shorthand for the parent hormone across all esters.
 nandrolone,,19-nortestosterone,chemical_name,curated_seed_v1,False,Standard chemical/common name for nandrolone; pending formal citation cross-check.
+nandrolone,,nortestosterone,chemical_name,faers_data_discovery_2026-08-28,True,"Found as raw medicinalproduct text ""NORTESTOSTERONE"" (no ""19-"" prefix) in real FAERS data during Phase 6; did not exact-match the existing ""19-nortestosterone"" alias, so was only caught by the fuzzy tier (ratio 0.909) -- promoted to its own curated exact-match entry."
 nandrolone,,19-Nor,abbreviation,curated_seed_v1,False,Common colloquial shorthand.
 nandrolone,nandrolone decanoate,Deca-Durabolin,brand,curated_seed_v1,False,"Classic Organon trademark for nandrolone decanoate; extremely well-documented but not confirmed via this session's web search -- pending formal citation."
 nandrolone,nandrolone decanoate,Deca,abbreviation,curated_seed_v1,False,Colloquial shorthand for the decanoate ester specifically.
@@ -19,9 +20,12 @@ oxymetholone,,Adrol,abbreviation,curated_seed_v1,False,Colloquial shorthand deri
 methandienone,,Dianabol,brand,web_search_2026-08-27,True,Confirmed via web search as the primary brand name for methandienone (methandrostenolone).
 methandienone,,Dbol,abbreviation,curated_seed_v1,False,Colloquial shorthand derived from the Dianabol brand name.
 methandienone,,methandrostenolone,common_name,web_search_2026-08-27,True,Confirmed via web search as a synonym used interchangeably with methandienone.
+methandienone,,Methane,abbreviation,faers_data_discovery_2026-08-28,True,"Found as raw medicinalproduct text ""METHANE DROSTENOLONE"" in a real FAERS report (safetyreportid 10085268) fetched during Phase 6 pipeline development; our fuzzy-match tier correctly resolved it to methandienone (confidence 0.947) before this row was added, and promoting it to a curated exact-match entry only raises future confidence for this known real-world term -- see pipelines/faers/README.md."
 methandienone,,metandienone,common_name,curated_seed_v1,True,INN spelling variant; independently confirmed to resolve to the same PubChem CID (6300) as methandienone via live PUG REST lookup.
 drostanolone,drostanolone propionate,Masteron,brand,web_search_2026-08-27,True,Confirmed via web search as the brand name for drostanolone propionate specifically.
 drostanolone,,Mast,abbreviation,curated_seed_v1,False,Colloquial shorthand for the parent compound across esters.
+drostanolone,,dromostanolone,common_name,faers_data_discovery_2026-08-28,True,"Official USAN name for drostanolone in the US (e.g. ""dromostanolone propionate"" is the US-monographed name); confirmed via web search (English Wikipedia ""Drostanolone""), and appeared 46 times as raw FAERS medicinalproduct text during Phase 6 -- promoted from the fuzzy tier (ratio 0.923) to a curated exact-match entry. NOT to be confused with androstanolone (a chemically distinct compound = DHT), which is explicitly block-listed in pipelines/faers/normalization.py."
+drostanolone,drostanolone propionate,dromostanolone propionate,common_name,faers_data_discovery_2026-08-28,True,US-monographed ester name corresponding to the dromostanolone/drostanolone synonym above; found in real FAERS data during Phase 6.
 methenolone,methenolone acetate,Primobolan,brand,web_search_2026-08-27,True,Confirmed via web search as the brand name for methenolone (metenolone) acetate (oral form).
 methenolone,methenolone enanthate,Primobolan Depot,brand,curated_seed_v1,False,Well-documented brand name for the injectable enanthate ester; pending formal citation cross-check.
 methenolone,,Primo,abbreviation,curated_seed_v1,False,Colloquial shorthand for the parent compound across esters.

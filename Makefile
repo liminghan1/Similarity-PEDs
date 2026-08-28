@@ -52,7 +52,9 @@ ingest:
 	uv run python -m pipelines.chembl.ingest
 	@echo "== BindingDB receptor bioactivity, optional complementary source (Phase 5) =="
 	uv run python -m pipelines.bindingdb.ingest
-	@echo "NOTE: FAERS ingestion (Phase 6) is not yet implemented -- see TODO.md."
+	@echo "== FAERS adverse-event reports (Phase 6) =="
+	uv run python -m pipelines.faers.ingest
+	@echo "Ingestion complete for Phases 3-6."
 
 build-datasets:
 	@echo "Not yet implemented -- see TODO.md Phase 8 (analysis/phenotype_matrix.py)."
