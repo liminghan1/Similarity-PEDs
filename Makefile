@@ -44,8 +44,11 @@ lint:
 	uv run ruff check backend
 
 ingest:
-	@echo "Not yet implemented -- see TODO.md Phase 4-6 (pipelines/pubchem, pipelines/chembl, pipelines/bindingdb, pipelines/faers)."
-	@exit 1
+	@echo "== PubChem (Phase 4) =="
+	uv run python -m pipelines.pubchem.ingest
+	@echo "== Compound registry: formulations + aliases (Phase 3) =="
+	uv run python -m pipelines.normalization.seed_registry
+	@echo "NOTE: ChEMBL/BindingDB (Phase 5) and FAERS (Phase 6) ingestion are not yet implemented -- see TODO.md."
 
 build-datasets:
 	@echo "Not yet implemented -- see TODO.md Phase 8 (analysis/phenotype_matrix.py)."

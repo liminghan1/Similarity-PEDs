@@ -1,0 +1,18 @@
+canonical_name,formulation_name,ester_name,route,source,curation_note
+testosterone,testosterone cypionate,cypionate,intramuscular injection,curated_seed_v1,Widely documented long-acting injectable ester (e.g. Depo-Testosterone); common in US clinical TRT use.
+testosterone,testosterone enanthate,enanthate,intramuscular injection,curated_seed_v1,Widely documented long-acting injectable ester; common in international clinical TRT use.
+testosterone,testosterone propionate,propionate,intramuscular injection,curated_seed_v1,Short-acting injectable ester.
+testosterone,testosterone undecanoate,undecanoate,"oral, intramuscular injection",curated_seed_v1,Long-acting ester used both orally (e.g. Andriol) and as a long-interval injectable (e.g. Nebido/Aveed).
+nandrolone,nandrolone decanoate,decanoate,intramuscular injection,curated_seed_v1,Long-acting injectable ester; the classic clinically-studied nandrolone formulation.
+nandrolone,nandrolone phenylpropionate,phenylpropionate,intramuscular injection,curated_seed_v1,Shorter-acting injectable ester than the decanoate.
+oxandrolone,oxandrolone,,oral,curated_seed_v1,17-alpha-alkylated oral androgen; not commonly esterified/injectable.
+stanozolol,stanozolol,,"oral, intramuscular injection (aqueous suspension)",curated_seed_v1,17-alpha-alkylated; available as oral tablets and as an injectable aqueous suspension (not an ester).
+oxymetholone,oxymetholone,,oral,curated_seed_v1,17-alpha-alkylated oral androgen.
+methandienone,methandienone,,oral,curated_seed_v1,17-alpha-alkylated oral androgen (also spelled metandienone).
+drostanolone,drostanolone propionate,propionate,intramuscular injection,curated_seed_v1,Short-acting injectable ester; the classically documented drostanolone formulation.
+drostanolone,drostanolone enanthate,enanthate,intramuscular injection,curated_seed_v1,Longer-acting injectable ester, less extensively documented than the propionate.
+methenolone,methenolone acetate,acetate,oral,curated_seed_v1,Oral ester.
+methenolone,methenolone enanthate,enanthate,intramuscular injection,curated_seed_v1,Long-acting injectable ester.
+boldenone,boldenone undecylenate,undecylenate,intramuscular injection,curated_seed_v1,Long-acting injectable ester; originally developed for veterinary use.
+trenbolone,trenbolone acetate,acetate,intramuscular injection,curated_seed_v1,Short-acting injectable ester; veterinary-origin compound.
+trenbolone,trenbolone enanthate,enanthate,intramuscular injection,curated_seed_v1,Long-acting injectable ester.

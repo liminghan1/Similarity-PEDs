@@ -65,7 +65,8 @@ implied by the schema alone).
 | column | type | notes |
 |---|---|---|
 | id | PK serial | |
-| compound_id | FK → compounds.id, not null | |
+| compound_id | FK → compounds.id, not null | always populated, even for a formulation-scoped alias (denormalized parent lookup) |
+| formulation_id | FK → formulations.id, nullable | **set when the alias names a specific ester/formulation, not the bare parent** — e.g. `Deca-Durabolin`/`Deca` are aliases of the *nandrolone decanoate* formulation, not of unesterified nandrolone (Sec. 9: never conflate parent and derivative). Null for aliases that genuinely apply to the parent across all forms (chemical names, class-wide slang like `Tren`). Added in migration `add_formulation_scoping_to_aliases` after Phase 3 curation revealed most real brand names are formulation-specific, not parent-specific. |
 | alias | text, not null | e.g. `Deca-Durabolin`, `Deca` |
 | alias_type | enum: `brand`, `common_name`, `chemical_name`, `misspelling`, `abbreviation`, `other` | |
 | source | text, nullable | citation/provenance for the alias |

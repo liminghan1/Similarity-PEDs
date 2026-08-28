@@ -1,0 +1,33 @@
+canonical_name,formulation_name,alias,alias_type,source,verified,curation_note
+testosterone,,17beta-hydroxyandrost-4-en-3-one,chemical_name,curated_seed_v1,False,IUPAC-style chemical name; pending formal citation cross-check.
+testosterone,,Test,abbreviation,curated_seed_v1,False,Common colloquial shorthand for the parent hormone across all esters.
+nandrolone,,19-nortestosterone,chemical_name,curated_seed_v1,False,Standard chemical/common name for nandrolone; pending formal citation cross-check.
+nandrolone,,19-Nor,abbreviation,curated_seed_v1,False,Common colloquial shorthand.
+nandrolone,nandrolone decanoate,Deca-Durabolin,brand,curated_seed_v1,False,"Classic Organon trademark for nandrolone decanoate; extremely well-documented but not confirmed via this session's web search -- pending formal citation."
+nandrolone,nandrolone decanoate,Deca,abbreviation,curated_seed_v1,False,Colloquial shorthand for the decanoate ester specifically.
+nandrolone,nandrolone phenylpropionate,Durabolin,brand,web_search_2026-08-27,True,Confirmed via web search (research/literature_review.md search session) as a brand name for nandrolone phenylpropionate.
+nandrolone,nandrolone phenylpropionate,NPP,abbreviation,curated_seed_v1,False,Common colloquial shorthand for the phenylpropionate ester.
+testosterone,testosterone cypionate,Depo-Testosterone,brand,curated_seed_v1,False,Well-documented US brand name for testosterone cypionate; pending formal citation cross-check.
+testosterone,testosterone enanthate,Testoviron,brand,curated_seed_v1,False,Historical Schering brand name for testosterone enanthate; pending formal citation cross-check.
+testosterone,testosterone undecanoate,Andriol,brand,curated_seed_v1,False,Well-documented oral testosterone undecanoate brand name; pending formal citation cross-check.
+oxandrolone,,Anavar,brand,web_search_2026-08-27,True,Confirmed via web search as the primary brand name for oxandrolone (not esterified in common use; parent-level alias).
+oxandrolone,,Var,abbreviation,curated_seed_v1,False,Colloquial shorthand derived from the Anavar brand name.
+stanozolol,,Winstrol,brand,web_search_2026-08-27,True,Confirmed via web search as the primary brand name for stanozolol.
+stanozolol,,Winny,abbreviation,curated_seed_v1,False,Colloquial shorthand derived from the Winstrol brand name.
+oxymetholone,,Anadrol,brand,web_search_2026-08-27,True,"Confirmed via web search (as ""Anadrol 50"") as the primary brand name for oxymetholone."
+oxymetholone,,Adrol,abbreviation,curated_seed_v1,False,Colloquial shorthand derived from the Anadrol brand name.
+methandienone,,Dianabol,brand,web_search_2026-08-27,True,Confirmed via web search as the primary brand name for methandienone (methandrostenolone).
+methandienone,,Dbol,abbreviation,curated_seed_v1,False,Colloquial shorthand derived from the Dianabol brand name.
+methandienone,,methandrostenolone,common_name,web_search_2026-08-27,True,Confirmed via web search as a synonym used interchangeably with methandienone.
+methandienone,,metandienone,common_name,curated_seed_v1,True,INN spelling variant; independently confirmed to resolve to the same PubChem CID (6300) as methandienone via live PUG REST lookup.
+drostanolone,drostanolone propionate,Masteron,brand,web_search_2026-08-27,True,Confirmed via web search as the brand name for drostanolone propionate specifically.
+drostanolone,,Mast,abbreviation,curated_seed_v1,False,Colloquial shorthand for the parent compound across esters.
+methenolone,methenolone acetate,Primobolan,brand,web_search_2026-08-27,True,Confirmed via web search as the brand name for methenolone (metenolone) acetate (oral form).
+methenolone,methenolone enanthate,Primobolan Depot,brand,curated_seed_v1,False,Well-documented brand name for the injectable enanthate ester; pending formal citation cross-check.
+methenolone,,Primo,abbreviation,curated_seed_v1,False,Colloquial shorthand for the parent compound across esters.
+methenolone,,metenolone,common_name,curated_seed_v1,False,INN spelling variant of methenolone; pending confirmation this resolves to the same PubChem entry.
+boldenone,boldenone undecylenate,Equipoise,brand,web_search_2026-08-27,True,Confirmed via web search as the brand name for boldenone undecylenate (originally veterinary).
+boldenone,boldenone undecylenate,EQ,abbreviation,curated_seed_v1,False,Colloquial shorthand derived from the Equipoise brand name.
+trenbolone,,Tren,abbreviation,curated_seed_v1,False,Common colloquial shorthand for the parent hormone across esters.
+trenbolone,trenbolone acetate,Finaplix,brand,curated_seed_v1,False,Well-documented veterinary pellet brand name for trenbolone acetate; pending formal citation cross-check.
+trenbolone,trenbolone acetate,Fina,abbreviation,curated_seed_v1,False,Colloquial shorthand derived from the Finaplix brand name.

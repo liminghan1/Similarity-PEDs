@@ -62,6 +62,13 @@ class CompoundAlias(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     compound_id: Mapped[int] = mapped_column(ForeignKey("compounds.id"), nullable=False, index=True)
+    # Nullable: many real-world brand names (e.g. "Deca-Durabolin") name a specific ester/
+    # formulation, not the bare parent compound (Sec. 9: "do NOT automatically merge" parent
+    # and derivative). When set, this alias refers specifically to that formulation; compound_id
+    # is still always populated (denormalized to the formulation's parent) so parent-level alias
+    # lookups don't need a join. When null, the alias genuinely refers to the parent compound
+    # across all its forms (e.g. a chemical name, or class-wide slang like "Tren").
+    formulation_id: Mapped[int | None] = mapped_column(ForeignKey("formulations.id"), nullable=True)
     alias: Mapped[str] = mapped_column(Text, nullable=False)
     alias_type: Mapped[AliasType] = mapped_column(nullable=False)
     source: Mapped[str | None] = mapped_column(Text, nullable=True)
@@ -69,6 +76,7 @@ class CompoundAlias(Base):
     created_at: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     compound: Mapped[Compound] = relationship(back_populates="aliases")
+    formulation: Mapped["Formulation | None"] = relationship()
 
 
 class Formulation(Base):

@@ -1,9 +1,17 @@
 # Inclusion / Exclusion Criteria and Minimum-Data Thresholds
 
-**Status:** Pre-specified, version 0.1. These thresholds are defaults chosen to balance statistical stability
+**Status:** Pre-specified, version 0.2. These thresholds are defaults chosen to balance statistical stability
 against the reality that this compound class has limited pharmacovigilance and bioactivity coverage. They are
 deliberately revisited in `research/sensitivity_analyses.md` (Sensitivity 1) rather than tuned post hoc against
 the primary result.
+
+**v0.2 change (2026-08-27, Phase 4 implementation, before any primary/H1 analysis was run):** the molecular-weight
+structure-integrity tolerance in Sec. 2 was widened from ±0.02 to ±0.1 g/mol after empirically checking it
+against real PubChem data. PubChem's `MolecularWeight` property is reported rounded to 1 decimal place (e.g.
+`288.4` for testosterone), while RDKit's `Descriptors.MolWt` computes to full precision (`288.431` for the same
+structure) -- a ~0.03 g/mol gap from rounding alone, before any minor atomic-mass-table differences between the
+two tools. ±0.02 would fail on real, correctly-parsed structures; ±0.1 comfortably covers PubChem's rounding
+while still catching genuine structure mismatches (which typically differ by whole atoms, i.e. several g/mol).
 
 The cohort is **analysis-specific** (Sec. 8 of the project brief): a compound can satisfy structural criteria,
 fail receptor criteria, and pass or fail FAERS criteria independently. Every table/figure that uses a cohort
@@ -30,7 +38,7 @@ here with a version bump and rationale.
 - SMILES must parse to a sanitizable RDKit `Mol` object (`Chem.MolFromSmiles(...)` does not return `None`, and
   `Chem.SanitizeMol` does not raise).
 - Molecular formula and molecular weight computed from the parsed structure must match the PubChem-reported
-  values within rounding tolerance (±0.02 g/mol), as a structure-integrity check.
+  values within rounding tolerance (±0.1 g/mol -- see v0.2 change note above), as a structure-integrity check.
 - Failure at this step **excludes the compound from every downstream analysis** and is logged in
   `reports/data_quality.md` under "invalid structures."
 

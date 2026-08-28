@@ -1,8 +1,8 @@
 """initial schema
 
-Revision ID: 734e9a35418b
+Revision ID: 656a21183cb0
 Revises: 
-Create Date: 2026-08-27 19:52:41.234855
+Create Date: 2026-08-27 20:03:19.547342
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision: str = '734e9a35418b'
+revision: str = '656a21183cb0'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -36,10 +36,10 @@ def upgrade() -> None:
     sa.Column('retrieved_at', sa.DateTime(timezone=True), nullable=True),
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
     sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
-    sa.ForeignKeyConstraint(['parent_compound_id'], ['compounds.id'], ),
-    sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('chembl_id'),
-    sa.UniqueConstraint('pubchem_cid')
+    sa.ForeignKeyConstraint(['parent_compound_id'], ['compounds.id'], name=op.f('fk_compounds_parent_compound_id_compounds')),
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_compounds')),
+    sa.UniqueConstraint('chembl_id', name=op.f('uq_compounds_chembl_id')),
+    sa.UniqueConstraint('pubchem_cid', name=op.f('uq_compounds_pubchem_cid'))
     )
     op.create_index(op.f('ix_compounds_canonical_name'), 'compounds', ['canonical_name'], unique=True)
     op.create_index(op.f('ix_compounds_inchikey'), 'compounds', ['inchikey'], unique=False)
@@ -54,7 +54,7 @@ def upgrade() -> None:
     sa.Column('status', sa.Enum('RUNNING', 'SUCCESS', 'FAILED', 'PARTIAL', name='etlstatus'), nullable=False),
     sa.Column('version', sa.Text(), nullable=False),
     sa.Column('notes', sa.Text(), nullable=True),
-    sa.PrimaryKeyConstraint('id')
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_etl_runs'))
     )
     op.create_table('faers_reports',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -72,7 +72,7 @@ def upgrade() -> None:
     sa.Column('is_deduplicated_latest', sa.Boolean(), nullable=False),
     sa.Column('dedup_reason', sa.Text(), nullable=True),
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
-    sa.PrimaryKeyConstraint('id'),
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_faers_reports')),
     sa.UniqueConstraint('case_id', 'version', name='uq_faers_case_version')
     )
     op.create_index(op.f('ix_faers_reports_case_id'), 'faers_reports', ['case_id'], unique=False)
@@ -84,7 +84,7 @@ def upgrade() -> None:
     sa.Column('organism', sa.Text(), nullable=True),
     sa.Column('source_target_id', sa.Text(), nullable=True),
     sa.Column('source', sa.Text(), nullable=True),
-    sa.PrimaryKeyConstraint('id')
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_targets'))
     )
     op.create_table('assays',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -96,29 +96,17 @@ def upgrade() -> None:
     sa.Column('organism', sa.Text(), nullable=True),
     sa.Column('confidence_score', sa.Integer(), nullable=True),
     sa.Column('assay_format', sa.Text(), nullable=True),
-    sa.ForeignKeyConstraint(['target_id'], ['targets.id'], ),
-    sa.PrimaryKeyConstraint('id'),
+    sa.ForeignKeyConstraint(['target_id'], ['targets.id'], name=op.f('fk_assays_target_id_targets')),
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_assays')),
     sa.UniqueConstraint('source', 'source_assay_id', name='uq_assay_source_id')
     )
-    op.create_table('compound_aliases',
-    sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('compound_id', sa.Integer(), nullable=False),
-    sa.Column('alias', sa.Text(), nullable=False),
-    sa.Column('alias_type', sa.Enum('BRAND', 'COMMON_NAME', 'CHEMICAL_NAME', 'MISSPELLING', 'ABBREVIATION', 'OTHER', name='aliastype'), nullable=False),
-    sa.Column('source', sa.Text(), nullable=True),
-    sa.Column('verified', sa.Boolean(), nullable=False),
-    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
-    sa.ForeignKeyConstraint(['compound_id'], ['compounds.id'], ),
-    sa.PrimaryKeyConstraint('id')
-    )
-    op.create_index(op.f('ix_compound_aliases_compound_id'), 'compound_aliases', ['compound_id'], unique=False)
     op.create_table('faers_reactions',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('report_id', sa.Integer(), nullable=False),
     sa.Column('meddra_term', sa.Text(), nullable=False),
     sa.Column('outcome', sa.Text(), nullable=True),
-    sa.ForeignKeyConstraint(['report_id'], ['faers_reports.id'], ),
-    sa.PrimaryKeyConstraint('id')
+    sa.ForeignKeyConstraint(['report_id'], ['faers_reports.id'], name=op.f('fk_faers_reactions_report_id_faers_reports')),
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_faers_reactions'))
     )
     op.create_index(op.f('ix_faers_reactions_meddra_term'), 'faers_reactions', ['meddra_term'], unique=False)
     op.create_index(op.f('ix_faers_reactions_report_id'), 'faers_reactions', ['report_id'], unique=False)
@@ -130,8 +118,8 @@ def upgrade() -> None:
     sa.Column('route', sa.Text(), nullable=True),
     sa.Column('source', sa.Text(), nullable=True),
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
-    sa.ForeignKeyConstraint(['compound_id'], ['compounds.id'], ),
-    sa.PrimaryKeyConstraint('id'),
+    sa.ForeignKeyConstraint(['compound_id'], ['compounds.id'], name=op.f('fk_formulations_compound_id_compounds')),
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_formulations')),
     sa.UniqueConstraint('compound_id', 'formulation_name', name='uq_formulation_name')
     )
     op.create_index(op.f('ix_formulations_compound_id'), 'formulations', ['compound_id'], unique=False)
@@ -142,8 +130,8 @@ def upgrade() -> None:
     sa.Column('evidence', postgresql.JSONB(astext_type=sa.Text()), nullable=True),
     sa.Column('method', sa.Text(), nullable=False),
     sa.Column('classifier_version', sa.Text(), nullable=False),
-    sa.ForeignKeyConstraint(['report_id'], ['faers_reports.id'], ),
-    sa.PrimaryKeyConstraint('report_id')
+    sa.ForeignKeyConstraint(['report_id'], ['faers_reports.id'], name=op.f('fk_report_classifications_report_id_faers_reports')),
+    sa.PrimaryKeyConstraint('report_id', name=op.f('pk_report_classifications'))
     )
     op.create_table('bioactivities',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -160,14 +148,28 @@ def upgrade() -> None:
     sa.Column('source_record_id', sa.Text(), nullable=False),
     sa.Column('retrieved_at', sa.DateTime(timezone=True), nullable=True),
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
-    sa.ForeignKeyConstraint(['assay_id'], ['assays.id'], ),
-    sa.ForeignKeyConstraint(['compound_id'], ['compounds.id'], ),
-    sa.ForeignKeyConstraint(['target_id'], ['targets.id'], ),
-    sa.PrimaryKeyConstraint('id')
+    sa.ForeignKeyConstraint(['assay_id'], ['assays.id'], name=op.f('fk_bioactivities_assay_id_assays')),
+    sa.ForeignKeyConstraint(['compound_id'], ['compounds.id'], name=op.f('fk_bioactivities_compound_id_compounds')),
+    sa.ForeignKeyConstraint(['target_id'], ['targets.id'], name=op.f('fk_bioactivities_target_id_targets')),
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_bioactivities'))
     )
     op.create_index(op.f('ix_bioactivities_assay_id'), 'bioactivities', ['assay_id'], unique=False)
     op.create_index(op.f('ix_bioactivities_compound_id'), 'bioactivities', ['compound_id'], unique=False)
     op.create_index(op.f('ix_bioactivities_target_id'), 'bioactivities', ['target_id'], unique=False)
+    op.create_table('compound_aliases',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('compound_id', sa.Integer(), nullable=False),
+    sa.Column('formulation_id', sa.Integer(), nullable=True),
+    sa.Column('alias', sa.Text(), nullable=False),
+    sa.Column('alias_type', sa.Enum('BRAND', 'COMMON_NAME', 'CHEMICAL_NAME', 'MISSPELLING', 'ABBREVIATION', 'OTHER', name='aliastype'), nullable=False),
+    sa.Column('source', sa.Text(), nullable=True),
+    sa.Column('verified', sa.Boolean(), nullable=False),
+    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
+    sa.ForeignKeyConstraint(['compound_id'], ['compounds.id'], name=op.f('fk_compound_aliases_compound_id_compounds')),
+    sa.ForeignKeyConstraint(['formulation_id'], ['formulations.id'], name=op.f('fk_compound_aliases_formulation_id_formulations')),
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_compound_aliases'))
+    )
+    op.create_index(op.f('ix_compound_aliases_compound_id'), 'compound_aliases', ['compound_id'], unique=False)
     op.create_table('faers_drugs',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('report_id', sa.Integer(), nullable=False),
@@ -179,10 +181,10 @@ def upgrade() -> None:
     sa.Column('mapping_method', sa.Enum('EXACT_ALIAS', 'CURATED_MATCH', 'NORMALIZED_STRING_MATCH', 'FUZZY_HIGH_CONFIDENCE', 'MANUAL_REVIEW', 'UNMAPPED', name='mappingmethod'), nullable=False),
     sa.Column('mapping_confidence', sa.Numeric(), nullable=True),
     sa.Column('mapping_version', sa.Text(), nullable=False),
-    sa.ForeignKeyConstraint(['formulation_id'], ['formulations.id'], ),
-    sa.ForeignKeyConstraint(['normalized_compound_id'], ['compounds.id'], ),
-    sa.ForeignKeyConstraint(['report_id'], ['faers_reports.id'], ),
-    sa.PrimaryKeyConstraint('id')
+    sa.ForeignKeyConstraint(['formulation_id'], ['formulations.id'], name=op.f('fk_faers_drugs_formulation_id_formulations')),
+    sa.ForeignKeyConstraint(['normalized_compound_id'], ['compounds.id'], name=op.f('fk_faers_drugs_normalized_compound_id_compounds')),
+    sa.ForeignKeyConstraint(['report_id'], ['faers_reports.id'], name=op.f('fk_faers_drugs_report_id_faers_reports')),
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_faers_drugs'))
     )
     op.create_index(op.f('ix_faers_drugs_normalized_compound_id'), 'faers_drugs', ['normalized_compound_id'], unique=False)
     op.create_index(op.f('ix_faers_drugs_report_id'), 'faers_drugs', ['report_id'], unique=False)
@@ -194,6 +196,8 @@ def downgrade() -> None:
     op.drop_index(op.f('ix_faers_drugs_report_id'), table_name='faers_drugs')
     op.drop_index(op.f('ix_faers_drugs_normalized_compound_id'), table_name='faers_drugs')
     op.drop_table('faers_drugs')
+    op.drop_index(op.f('ix_compound_aliases_compound_id'), table_name='compound_aliases')
+    op.drop_table('compound_aliases')
     op.drop_index(op.f('ix_bioactivities_target_id'), table_name='bioactivities')
     op.drop_index(op.f('ix_bioactivities_compound_id'), table_name='bioactivities')
     op.drop_index(op.f('ix_bioactivities_assay_id'), table_name='bioactivities')
@@ -204,8 +208,6 @@ def downgrade() -> None:
     op.drop_index(op.f('ix_faers_reactions_report_id'), table_name='faers_reactions')
     op.drop_index(op.f('ix_faers_reactions_meddra_term'), table_name='faers_reactions')
     op.drop_table('faers_reactions')
-    op.drop_index(op.f('ix_compound_aliases_compound_id'), table_name='compound_aliases')
-    op.drop_table('compound_aliases')
     op.drop_table('assays')
     op.drop_table('targets')
     op.drop_index(op.f('ix_faers_reports_received_date'), table_name='faers_reports')
