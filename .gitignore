@@ -1,0 +1,44 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+
+# Env / secrets
+.env
+.env.local
+
+# Node / frontend
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+
+# Data — never commit raw or interim pharmacovigilance/bioactivity pulls
+data/raw/*
+!data/raw/.gitkeep
+data/interim/*
+!data/interim/.gitkeep
+data/processed/*
+!data/processed/.gitkeep
+
+# Large generated artifacts
+artifacts/models/*
+!artifacts/models/.gitkeep
+artifacts/matrices/*
+!artifacts/matrices/.gitkeep
+figures/*.png
+figures/*.pdf
+figures/*.svg
+
+# Postgres data volume (docker-compose)
+.pgdata/
+
+# OS / editor
+.DS_Store
+.vscode/
+.idea/
+
+# uv
+uv.lock.bak
