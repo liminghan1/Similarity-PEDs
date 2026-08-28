@@ -48,7 +48,11 @@ ingest:
 	uv run python -m pipelines.pubchem.ingest
 	@echo "== Compound registry: formulations + aliases (Phase 3) =="
 	uv run python -m pipelines.normalization.seed_registry
-	@echo "NOTE: ChEMBL/BindingDB (Phase 5) and FAERS (Phase 6) ingestion are not yet implemented -- see TODO.md."
+	@echo "== ChEMBL receptor bioactivity (Phase 5) =="
+	uv run python -m pipelines.chembl.ingest
+	@echo "== BindingDB receptor bioactivity, optional complementary source (Phase 5) =="
+	uv run python -m pipelines.bindingdb.ingest
+	@echo "NOTE: FAERS ingestion (Phase 6) is not yet implemented -- see TODO.md."
 
 build-datasets:
 	@echo "Not yet implemented -- see TODO.md Phase 8 (analysis/phenotype_matrix.py)."
@@ -59,8 +63,9 @@ analyze:
 	@exit 1
 
 figures:
-	@echo "Not yet implemented -- see TODO.md Phase 12."
-	@exit 1
+	@echo "== Figure 2: data-coverage heatmap (Phase 5) =="
+	uv run python -m analysis.missingness_analysis
+	@echo "NOTE: Figures 1, 3-10 are not yet implemented -- see TODO.md Phase 12."
 
 report:
 	@echo "Not yet implemented -- see TODO.md Phase 13."

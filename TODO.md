@@ -82,14 +82,41 @@ drifts toward these must be stopped and flagged, not implemented.
       validation (valid, formula mismatch, MW-tolerance mismatch, invalid SMILES).
 - [ ] Figure 2 (data-coverage heatmap) — deferred to Phase 5, once receptor coverage data also exist.
 
-## Phase 5 — ChEMBL / BindingDB pipeline (not started)
-- [ ] ChEMBL web-services client, target/assay/bioactivity retrieval for AR/PR/GR/MR/ERα/ERβ.
-- [ ] Unit normalization to nM, `p_activity` computed via `backend/app/analytics/signals.py::p_activity_from_nm`
-      (already implemented and tested) — only for relation `=`.
-- [ ] Assay filtering per `research/exclusion_rules.md` §3 (organism, confidence score, measurement-type
-      separation, median-within-homogeneous-group aggregation).
-- [ ] BindingDB as a separate, separately-provenanced source.
-- [ ] Coverage analysis → Figure 2 (data-coverage heatmap).
+## Phase 5 — ChEMBL / BindingDB pipeline ✅ (2026-08-27)
+- [x] `pipelines/chembl/` — REST client (molecule-by-InChIKey exact match, paginated activity
+      retrieval filtered server-side to `standard_type__in=Ki,IC50,EC50,Kd`, cached assay lookups),
+      target registry for AR/PR/GR/MR/ERα/ERβ with every `target_chembl_id` confirmed live (not
+      copied from memory — a plain-text search for "estrogen receptor alpha/beta" surfaces the
+      wrong entries; resolved via `target_synonym__icontains=ESR1/ESR2` instead).
+- [x] Filtering per `research/exclusion_rules.md` §3: rows with no usable relation/value skipped,
+      `potential_duplicate`/`data_validity_comment`-flagged rows skipped, measurement types never
+      pooled. Unit normalization to nM (`pipelines/chembl/units.py`) and `p_activity` (only for
+      `relation == '='`) — cross-validated against ChEMBL's own `pchembl_value` for the same
+      record (8.409 computed vs. 8.41 reported). Median-within-homogeneous-group aggregation is
+      correctly deferred to Phase 8 (phenotype-matrix construction), not done at ingestion, so the
+      raw layer stays complete — see `pipelines/chembl/README.md`.
+- [x] **Run against the live API and DB**: 19 bioactivity records inserted (testosterone, oxandrolone,
+      stanozolol only). 6/10 compounds matched a ChEMBL molecule but had zero qualifying activities
+      against any of the 6 targets — verified this is real ChEMBL sparsity (non-standard measurement
+      types like "RBA"/"Potency", or genuinely zero records), not a pipeline bug. methenolone has no
+      ChEMBL entry for the free parent (only its esters) — documented, not worked around by
+      substituting ester bioactivity for the parent.
+- [x] `pipelines/bindingdb/` — separate provenance (`source='bindingdb'`, distinct `source_target_id`
+      keyed by UniProt, not ChEMBL ID). Target-first query (`getLigandsByUniprot`) with
+      connectivity-layer InChIKey structure matching, since BindingDB's own compound-search endpoint
+      (`getTargetByCompound`) proved unreliable for exact matches even at similarity cutoff 1.0.
+- [x] **Run against the live API and DB**: 1,659 records fetched across all 6 targets, 0 matched
+      the cohort — verified as a real finding (BindingDB's AR set, for example, is dominated by
+      synthetic SARM-class chemotypes, not classic steroids), not a bug. `etl_runs` records this
+      accurately (`SUCCESS`, `records_inserted=0`) rather than being silently skipped.
+- [x] `analysis/missingness_analysis.py` — coverage matrix (compound × {AR,PR,GR,MR,ERα,ERβ,FAERS},
+      measurement counts, not binary) + **Figure 2** (`figures/figure2_data_coverage_heatmap.png`/
+      `.pdf`), 0-count cells rendered as a distinct gray "missing" color rather than the low end of
+      a continuous scale. Current real result: 64/70 cells (91.4%) have zero measurements — a
+      genuine, expected finding for this compound class, not withheld or smoothed over.
+- [x] 17 new tests (12 ChEMBL fixture-based filtering/unit tests, 5 BindingDB affinity-parsing
+      tests) + 1 missingness-analysis CSV test + 1 chemistry test (`connectivity_inchikey_block`),
+      61 total, all passing.
 
 ## Phase 6 — FAERS pipeline (not started)
 - [ ] openFDA ingestion (`pipelines/faers/`), manageable initial time window, designed to scale.

@@ -6,6 +6,7 @@ from backend.app.analytics.chemistry import (
     compute_descriptors,
     compute_inchikey,
     compute_morgan_fingerprint,
+    connectivity_inchikey_block,
     parse_smiles,
     tanimoto_similarity,
 )
@@ -64,6 +65,13 @@ class TestInchikey:
         isomeric_key = compute_inchikey(TESTOSTERONE_ISOMERIC_SMILES)
         assert flat_key.split("-")[0] == isomeric_key.split("-")[0] == "MUMGGOZAMZWBJJ"
         assert flat_key != isomeric_key  # stereo layer must differ
+
+    def test_connectivity_block_matches_regardless_of_stereo(self):
+        assert (
+            connectivity_inchikey_block(TESTOSTERONE_SMILES)
+            == connectivity_inchikey_block(TESTOSTERONE_ISOMERIC_SMILES)
+            == "MUMGGOZAMZWBJJ"
+        )
 
 
 class TestFingerprintsAndSimilarity:

@@ -65,6 +65,16 @@ def compute_inchikey(smiles: str) -> str:
     return Chem.MolToInchiKey(mol)
 
 
+def connectivity_inchikey_block(smiles: str) -> str:
+    """The first (connectivity-layer) block of the InChIKey -- 14 characters, stereo-independent
+    by construction (InChIKey's second block, not the first, encodes stereochemistry). Used to
+    match structures across data sources that may assign stereo descriptors differently or not
+    at all (e.g. pipelines/bindingdb/ingest.py matching returned ligand SMILES against our
+    cohort), where an exact full-InChIKey match would be too brittle.
+    """
+    return compute_inchikey(smiles).split("-")[0]
+
+
 def compute_morgan_fingerprint(smiles: str, radius: int = 2, n_bits: int = 2048):
     """Morgan (ECFP-like) fingerprint as an RDKit ExplicitBitVect.
 
