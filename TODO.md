@@ -170,9 +170,52 @@ drifts toward these must be stopped and flagged, not implemented.
       zero-cell-without-correction raises, negative-count rejection, directional signal case (11 tests).
 - [ ] Wiring into `analysis/faers_signals.py` against real contingency tables once Phase 6 data exist.
 
-## Phase 8 — Phenotype matrices (not started, depends on Phases 4-6)
-- [ ] `analysis/phenotype_matrix.py` — molecular, receptor, combined, and safety phenotype matrices; versioned
-      artifacts under `artifacts/matrices/`.
+## Phase 8 — Phenotype matrices ✅ (2026-08-28)
+- [x] `analysis/phenotype_matrix.py` — three independent phenotype representations (never merged
+      into one raw-value table; combination happens at the similarity/distance level in Phase 9
+      per `research/analysis_plan.md`):
+      1. **Molecular descriptor matrix** (10x10, fully populated) — RDKit descriptors from stored SMILES.
+      2. **Receptor phenotype matrix** — median-aggregated pActivity per compound x
+         (target, measurement_type), confidence>=8 primary + an all-confidence sensitivity
+         variant (`research/exclusion_rules.md` §3). Real result: 10x8, only 10/80 cells
+         populated (testosterone, oxandrolone, stanozolol only) — consistent with Phase 5.
+      3. **Safety phenotype**: a long-format signal table (every compound x research-defined AE
+         category with full a/b/c/d, ROR, logROR, CI, sparse-cell and below-minimum flags —
+         `research/analysis_plan.md` §1 requires these fields travel together) plus a derived
+         wide-format logROR matrix for similarity analysis. Real result: 10x11, 100/110 cells
+         populated (91%) — a sharp contrast with the receptor matrix's 12.5%, worth highlighting
+         in the research report's discussion of Aim 1 vs. Aim 2 data-availability asymmetry.
+- [x] `research/ae_categories.csv` bumped to v0.2: expanded from the v0.1 seed list (~80 terms) to
+      ~107 terms after matching against real ingested FAERS reaction data (Phase 6), adding
+      confirmed high-frequency real MedDRA terms (e.g. "Acute myocardial infarction" 227
+      occurrences, "Drug-induced liver injury" 42, "Blood testosterone decreased" 83) per category
+      with occurrence counts documented inline. **Also fixed a real (if minor) pre-existing bug**:
+      several v0.1 notes contained unquoted commas, silently producing malformed CSV rows (caught
+      while building this phase, not by a test before now) — fixed and a regression test added
+      (`backend/tests/test_ae_categories_data.py`).
+      **Data-quality finding**: the same MedDRA term appears in both proper-case and ALL-CAPS
+      forms across different real FAERS reports (e.g. "Jaundice" vs. "JAUNDICE" as literally
+      distinct raw strings) — category matching is therefore case-insensitive by design, and this
+      is documented for the Sensitivity 4 (category- vs. individual-term) analysis to account for.
+- [x] Sanity-checked the real safety phenotype matrix output rather than trusting it blindly: found
+      a biologically plausible pattern **before any formal hypothesis test** — 17-alpha-alkylated
+      oral compounds (methandienone, stanozolol) and drostanolone show strongly positive hepatic
+      logROR (1.5-2.1) while testosterone (mostly non-alkylated/injectable in this FAERS
+      population) is negative (-1.13), consistent with well-documented oral-AAS hepatotoxicity.
+      Testosterone alone shows strongly positive cardiovascular/thrombotic logROR, converging with
+      the literature found in Phase 1 (`research/literature_review.md`'s testosterone-MACE FAERS
+      paper). **This is a sanity check, not the primary analysis** (Phase 9 is) — flagged here
+      only to note the pipeline is producing plausible signal, not to draw conclusions early.
+      Also noted an expected structural effect of the cohort-relative background design: because
+      testosterone dominates total report volume, most other compounds show *negative*
+      cardiovascular/thrombotic logROR simply because testosterone's own elevated signal inflates
+      their comparator background — exactly what Sensitivity 6 (alternate background definition)
+      is designed to probe.
+- [x] `artifacts/matrices/dataset_manifest.json` — git commit, thresholds, shapes, non-null cell
+      counts, compound/category lists (Sec. 28 provenance).
+- [x] 11 new tests (`backend/tests/test_phenotype_matrix.py`) against hand-verified small synthetic
+      report sets (a/b/c/d counts checked by hand, not just "does it run") plus real-CSV loading
+      tests for `ae_categories.csv`. 127 total tests passing.
 
 ## Phase 9 — Primary analysis (not started, depends on Phase 8)
 - [ ] `analysis/similarity_analysis.py`, `analysis/matrix_association.py` — Mantel-style permutation test (H1),

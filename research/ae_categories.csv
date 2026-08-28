@@ -1,5 +1,5 @@
 category,representative_reported_term,version,notes
-cardiovascular,hypertension,0.1,seed term list — matched against real openFDA reaction.reactionmeddrapt strings in Phase 6; unmatched terms are logged as uncategorized for manual review, not silently dropped
+cardiovascular,hypertension,0.1,"seed term list — matched against real openFDA reaction.reactionmeddrapt strings in Phase 6; unmatched terms are logged as uncategorized for manual review, not silently dropped"
 cardiovascular,myocardial infarction,0.1,
 cardiovascular,cardiac arrest,0.1,
 cardiovascular,left ventricular hypertrophy,0.1,
@@ -9,63 +9,99 @@ cardiovascular,tachycardia,0.1,
 cardiovascular,palpitations,0.1,
 cardiovascular,dyslipidaemia,0.1,
 cardiovascular,ejection fraction decreased,0.1,
+cardiovascular,acute myocardial infarction,0.2,"confirmed real term, 227 occurrences in Phase 6 FAERS ingest (see v0.2 note below)"
+cardiovascular,cardiovascular disorder,0.2,"confirmed real term, 220 occurrences"
+cardiovascular,cardiac failure congestive,0.2,"confirmed real term, 205 occurrences"
+cardiovascular,coronary artery disease,0.2,"confirmed real term, 148 occurrences"
+cardiovascular,chest pain,0.2,"confirmed real term, 144 occurrences"
+cardiovascular,cardiac disorder,0.2,"confirmed real term, 128 occurrences"
+cardiovascular,atrial fibrillation,0.2,"confirmed real term, 113 occurrences"
+cardiovascular,ischaemia,0.2,"confirmed real term, 123 occurrences; bare ""Ischaemia"" without an organ qualifier is ambiguous but classified cardiovascular by convention here"
 thrombotic,deep vein thrombosis,0.1,
 thrombotic,pulmonary embolism,0.1,
 thrombotic,thrombosis,0.1,
-thrombotic,cerebrovascular accident,0.1,
+thrombotic,cerebrovascular accident,0.1,"confirmed real term (stroke), 620 occurrences -- also plausibly cardiovascular; kept single-category here per the existing thrombotic placement rather than duplicated"
 thrombotic,polycythaemia,0.1,
 thrombotic,haematocrit increased,0.1,
+thrombotic,transient ischaemic attack,0.2,"confirmed real term, 95 occurrences"
 hepatic,hepatotoxicity,0.1,
-hepatic,hepatic function abnormal,0.1,
+hepatic,hepatic function abnormal,0.1,"confirmed real term, 55 occurrences (+13 as literal all-caps 'HEPATIC FUNCTION ABNORMAL' -- see v0.2 case-normalization note below)"
 hepatic,hepatocellular injury,0.1,
-hepatic,jaundice,0.1,
+hepatic,jaundice,0.1,"confirmed real term, 27 occurrences (+12 all-caps)"
 hepatic,cholestasis,0.1,
 hepatic,liver function test increased,0.1,
-hepatic,hepatic neoplasm,0.1,relevant to peliosis hepatis / hepatic adenoma reports associated with 17-alpha-alkylated AAS in the clinical literature
+hepatic,hepatic neoplasm,0.1,"relevant to peliosis hepatis / hepatic adenoma reports associated with 17-alpha-alkylated AAS in the clinical literature; confirmed real term, 13 occurrences"
 hepatic,peliosis hepatis,0.1,
+hepatic,drug-induced liver injury,0.2,"confirmed real term, 42 occurrences"
+hepatic,liver disorder,0.2,"confirmed real term, 27 occurrences (+13 all-caps)"
+hepatic,acute hepatic failure,0.2,"confirmed real term, 24 occurrences"
+hepatic,hepatic enzyme increased,0.2,"confirmed real term, 18 occurrences (+6 all-caps)"
+hepatic,liver function test abnormal,0.2,"confirmed real term, 18 occurrences (+7 all-caps)"
+hepatic,hepatomegaly,0.2,"confirmed real term, 13 occurrences (+8 all-caps)"
+hepatic,hepatic steatosis,0.2,"confirmed real term, 10 occurrences"
+hepatic,hepatic failure,0.2,"confirmed real term, 10 occurrences"
+hepatic,hepatocellular carcinoma,0.2,"confirmed real term, 10 occurrences"
+hepatic,hepatic necrosis,0.2,"confirmed real term, 8 occurrences"
+hepatic,cholestatic liver injury,0.2,"confirmed real term, 7 occurrences"
+hepatic,hepatorenal syndrome,0.2,"confirmed real term, 6 occurrences -- also plausibly renal; kept single-category here"
+hepatic,hepatic adenoma,0.2,"confirmed real term, 6 occurrences"
 renal,renal impairment,0.1,
 renal,renal failure,0.1,
 renal,blood creatinine increased,0.1,
 renal,nephropathy,0.1,
+renal,acute kidney injury,0.2,"confirmed real term, 113 occurrences"
 endocrine,testosterone decreased,0.1,
 endocrine,hypogonadism,0.1,
-endocrine,gynaecomastia,0.1,
-endocrine,libido decreased,0.1,
-endocrine,libido increased,0.1,
+endocrine,gynaecomastia,0.1,"confirmed real term, 21 occurrences"
+endocrine,libido decreased,0.1,"confirmed real term, 30 occurrences"
+endocrine,libido increased,0.1,"confirmed real term, 8 occurrences"
 endocrine,adrenal insufficiency,0.1,
-endocrine,hypothalamic-pituitary-gonadal axis suppression,0.1,not a confirmed literal MedDRA PT string — retained as a category label to be matched against closest real term(s) during Phase 6 curation
-reproductive,testicular atrophy,0.1,
-reproductive,azoospermia,0.1,
+endocrine,hypothalamic-pituitary-gonadal axis suppression,0.1,"not a confirmed literal MedDRA PT string — retained as a category label; no exact match found in Phase 6 real data, left unmatched rather than forced"
+endocrine,blood testosterone decreased,0.2,"confirmed real term, 83 occurrences -- distinct MedDRA PT from 'testosterone decreased' above, both kept"
+endocrine,loss of libido,0.2,"confirmed real term, 9 occurrences -- distinct PT from ""libido decreased"", both kept"
+reproductive,testicular atrophy,0.1,"confirmed real term, 38 occurrences"
+reproductive,azoospermia,0.1,"confirmed real term, 6 occurrences"
 reproductive,oligospermia,0.1,
-reproductive,erectile dysfunction,0.1,
+reproductive,erectile dysfunction,0.1,"confirmed real term, 44 occurrences (+7 all-caps)"
 reproductive,infertility,0.1,
 reproductive,menstrual disorder,0.1,
 reproductive,virilisation,0.1,
 reproductive,clitoromegaly,0.1,
 reproductive,amenorrhoea,0.1,
+reproductive,prostate cancer,0.2,"confirmed real term, 29 occurrences"
+reproductive,prostatic specific antigen increased,0.2,"confirmed real term, 10 occurrences"
+reproductive,prostatomegaly,0.2,"confirmed real term, 9 occurrences"
+reproductive,benign prostatic hyperplasia,0.2,"confirmed real term, 8 occurrences"
+reproductive,testicular pain,0.2,"confirmed real term, 7 occurrences"
+reproductive,testicular swelling,0.2,"confirmed real term, 7 occurrences"
 psychiatric,aggression,0.1,
 psychiatric,irritability,0.1,
 psychiatric,mania,0.1,
-psychiatric,depression,0.1,
-psychiatric,anxiety,0.1,
+psychiatric,depression,0.1,"confirmed real term, 152 occurrences"
+psychiatric,anxiety,0.1,"confirmed real term, 283 occurrences"
 psychiatric,psychotic disorder,0.1,
 psychiatric,mood swings,0.1,
-psychiatric,substance abuse,0.1,retained here for descriptive AE-category purposes; misuse/abuse classification for Aim 4 is a SEPARATE, evidence-logged report_classifications field per docs/database_schema.md — a report is never auto-labeled misuse solely from this category
-neurologic,headache,0.1,
-neurologic,dizziness,0.1,
+psychiatric,substance abuse,0.1,"retained here for descriptive AE-category purposes; misuse/abuse classification for Aim 4 is a SEPARATE, evidence-logged report_classifications field per docs/database_schema.md — a report is never auto-labeled misuse solely from this category"
+psychiatric,insomnia,0.2,"confirmed real term, 122 occurrences"
+psychiatric,emotional distress,0.2,"confirmed real term, 88 occurrences"
+neurologic,headache,0.1,"confirmed real term, 177 occurrences"
+neurologic,dizziness,0.1,"confirmed real term, 143 occurrences"
 neurologic,seizure,0.1,
 neurologic,tremor,0.1,
 neurologic,paraesthesia,0.1,
-dermatologic,acne,0.1,
-dermatologic,alopecia,0.1,
+dermatologic,acne,0.1,"confirmed real term, 24 occurrences"
+dermatologic,alopecia,0.1,"confirmed real term, 43 occurrences"
 dermatologic,hirsutism,0.1,
 dermatologic,skin striae,0.1,
 dermatologic,injection site reaction,0.1,
+dermatologic,acne fulminans,0.2,"confirmed real term, 8 occurrences -- distinct PT from bare 'acne' above, both kept"
 hematologic,polycythaemia,0.1,duplicated intentionally under both thrombotic and hematologic — a reported term may map to more than one research-defined category; both mappings are preserved rather than forcing a single label
 hematologic,haemoglobin increased,0.1,
 hematologic,erythrocytosis,0.1,
-hematologic,anaemia,0.1,
-metabolic,weight increased,0.1,
+hematologic,anaemia,0.1,"confirmed real term, 119 occurrences"
+hematologic,platelet count decreased,0.2,"confirmed real term, 95 occurrences"
+hematologic,white blood cell count decreased,0.2,"confirmed real term, 77 occurrences"
+metabolic,weight increased,0.1,"confirmed real term, 85 occurrences"
 metabolic,glucose tolerance impaired,0.1,
 metabolic,insulin resistance,0.1,
 metabolic,oedema,0.1,

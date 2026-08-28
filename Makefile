@@ -57,8 +57,8 @@ ingest:
 	@echo "Ingestion complete for Phases 3-6."
 
 build-datasets:
-	@echo "Not yet implemented -- see TODO.md Phase 8 (analysis/phenotype_matrix.py)."
-	@exit 1
+	@echo "== Molecular / receptor / safety phenotype matrices (Phase 8) =="
+	uv run python -m analysis.phenotype_matrix
 
 analyze:
 	@echo "Not yet implemented -- see TODO.md Phase 9-11 (analysis/similarity_analysis.py, matrix_association.py, clustering.py, misuse_analysis.py, sensitivity.py)."
