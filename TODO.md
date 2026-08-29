@@ -217,10 +217,45 @@ drifts toward these must be stopped and flagged, not implemented.
       report sets (a/b/c/d counts checked by hand, not just "does it run") plus real-CSV loading
       tests for `ae_categories.csv`. 127 total tests passing.
 
-## Phase 9 — Primary analysis (not started, depends on Phase 8)
-- [ ] `analysis/similarity_analysis.py`, `analysis/matrix_association.py` — Mantel-style permutation test (H1),
-      per the pre-specified plan. **Do not modify the primary method after seeing results without logging the
-      deviation in `research/analysis_plan.md`.**
+## Phase 9 — Primary analysis ✅ (2026-08-28)
+- [x] `analysis/similarity_analysis.py` — 6 pairwise distance matrices (fingerprint/descriptor/
+      structure/receptor/combined/safety) written to `artifacts/matrices/`.
+      **Caught a real bug before it silently corrupted results**: `rotatable_bonds` is 0 for all
+      10 cohort compounds (rigid steroid scaffolds), so its z-score is 0/0=NaN for every compound,
+      which poisoned every one of the 45 pairwise Euclidean descriptor distances (0/45 defined on
+      the first run, where 45/45 was expected). Fixed by dropping zero-variance columns before
+      z-scoring (they carry no discriminative information anyway), with a regression test.
+- [x] `analysis/matrix_association.py` — Mantel-style permutation test (Spearman rho on upper-
+      triangle distances, N=9,999 permutations, seed=42, one- and two-sided empirical p-values,
+      1,999-resample bootstrap CI on the statistic) plus `find_largest_complete_subset` for the
+      documented pairwise-complete missing-data policy, kept separate from the test itself.
+- [x] **Pre-result deviation logged** (`research/analysis_plan.md` Deviations table, dated
+      2026-08-28, before any Mantel test was run): Phase 8's receptor phenotype matrix showed only
+      3/10 compounds have *any* receptor measurement, and only 1 of 45 compound pairs
+      (testosterone-oxandrolone) shares *any* receptor target — and that pair shares only 2
+      columns, below the `MIN_SHARED_RECEPTOR_FEATURES=3` threshold needed for a Pearson
+      correlation to be more than a mathematically deterministic +/-1. This makes the receptor and
+      combined distance matrices **entirely undefined (0/45 pairs)** with current data — a data-
+      availability fact discovered independent of, and before, the H1 test result itself.
+- [x] **Ran all three pre-specified tests against real data**:
+      - **PRIMARY** (H1, combined vs. safety distance): **NOT COMPUTABLE** — confirmed degenerate
+        as anticipated by the deviation above (fewer than 4 objects have complete pairwise data).
+      - **SECONDARY** (H2, structure-only vs. safety distance): **computable on the full 10-compound
+        cohort.** Result: rho = -0.293, p (one-sided, H1's predicted positive direction) = 0.956,
+        p (two-sided) = 0.152, bootstrap 95% CI [-0.56, 0.02]. **No significant positive
+        association found; the point estimate trends negative (not statistically significant).**
+        This is reported as a genuine result, not suppressed or reframed — per the project's own
+        stated standard, a null/negative finding is as scientifically valid as a positive one when
+        the methodology is sound.
+      - **SECONDARY** (H2, receptor-only vs. safety distance): NOT COMPUTABLE (same 0/45 issue).
+      - Full results (statistics, p-values, CI, object lists) written to
+        `artifacts/matrices/matrix_association_results.json`.
+- [x] 26 new tests (11 for `matrix_association.py` incl. hand-verified identical/inverted-matrix
+      cases, 15 for `similarity_analysis.py` incl. the zero-variance-column regression), 154 total.
+- [ ] **Not yet done, deferred to Phase 11/13**: interpreting *why* the structure-only result
+      trends negative (e.g., possible confounding from testosterone's dominant report volume
+      pulling the cohort-relative safety background, flagged as a concern during Phase 8's sanity
+      check) — that discussion belongs in the research report and sensitivity analyses, not here.
 
 ## Phase 10 — Secondary analyses (not started)
 - [ ] `analysis/clustering.py`, `analysis/misuse_analysis.py`, multivariate association (H4).

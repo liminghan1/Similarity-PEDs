@@ -61,8 +61,11 @@ build-datasets:
 	uv run python -m analysis.phenotype_matrix
 
 analyze:
-	@echo "Not yet implemented -- see TODO.md Phase 9-11 (analysis/similarity_analysis.py, matrix_association.py, clustering.py, misuse_analysis.py, sensitivity.py)."
-	@exit 1
+	@echo "== Pairwise distance matrices (Phase 9) =="
+	uv run python -m analysis.similarity_analysis
+	@echo "== Primary + secondary matrix-association tests, H1/H2 (Phase 9) =="
+	uv run python -m analysis.matrix_association
+	@echo "NOTE: clustering / misuse analysis (Phase 10) and sensitivity analyses (Phase 11) are not yet implemented -- see TODO.md."
 
 figures:
 	@echo "== Figure 2: data-coverage heatmap (Phase 5) =="
