@@ -1,7 +1,12 @@
 import Link from "next/link";
 import { Card, Stat } from "@/components/Card";
 import { ProvenanceBadge } from "@/components/ProvenanceBadge";
-import { getCompound } from "@/lib/api";
+import { getCompound, getCompounds } from "@/lib/api";
+
+export async function generateStaticParams() {
+  const compounds = await getCompounds();
+  return compounds.map((c) => ({ name: c.canonical_name }));
+}
 
 export default async function CompoundDetailPage({
   params,

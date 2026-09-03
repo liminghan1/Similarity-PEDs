@@ -132,6 +132,34 @@ Safety (`/molecular-vs-safety`), Clustering (`/clustering`), Therapeutic vs. Mis
 MODEL OUTPUT / INTERPRETATION, per Sec. 37 of the project brief) and carries a persistent disclaimer that
 FAERS-derived numbers are reporting associations, not clinical risk.
 
+### Deploying the dashboard to GitHub Pages
+
+`.github/workflows/deploy-pages.yml` builds and publishes the dashboard automatically on every push to
+`main`. Because GitHub Pages only serves static files, the workflow runs the **entire real-data pipeline
+from scratch** in CI (a fresh Postgres service container, then live PubChem/ChEMBL/BindingDB/openFDA
+ingestion, phenotype matrices, analyses, and reports), starts the FastAPI backend, and builds the frontend
+as a static export (`output: "export"` in `frontend/next.config.ts`) that fetches from that backend at
+*build* time. The published site is therefore a **frozen snapshot** — there is no live backend on Pages, and
+picking up new data means pushing again (or re-running the workflow via `workflow_dispatch`) to rebuild.
+
+One-time setup (cannot be done from the workflow itself): in the repo's **Settings → Pages**, set **Source**
+to **GitHub Actions**. Optionally add an `OPENFDA_API_KEY` repository secret to raise the openFDA rate limit
+for repeated same-day runs (the pipeline works keyless for this project's ~10-compound cohort; see
+`pipelines/faers/README.md`). The site is served at `https://<user>.github.io/<repo>/` — `next.config.ts`'s
+`basePath`/`assetPrefix` are only applied when the workflow sets `GITHUB_PAGES=true`, so local dev/build is
+unaffected.
+
+To build the same static export locally (e.g. to preview before pushing):
+
+```bash
+cd frontend
+BACKEND_API_URL=http://localhost:8000 npm run build   # writes frontend/out/, basePath empty
+npx serve out                                          # or any static file server, http://localhost:3000
+```
+
+(Add `GITHUB_PAGES=true` to that build only if you also serve `out/` from underneath a `/Similarity-PEDs/`
+path locally, to match how GitHub Pages itself will serve it.)
+
 ## Limitations (summary)
 
 - Small compound cohort (n=10) limits statistical power for every matrix-association and multivariate analysis.

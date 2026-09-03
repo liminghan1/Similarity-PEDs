@@ -429,6 +429,15 @@ drifts toward these must be stopped and flagged, not implemented.
       `react-plotly.js`'s own `createPlotlyComponent(plotly: object)` signature) rather than pulling in the
       full `plotly.js` namespace types, which failed to resolve under `moduleResolution: "bundler"` from
       inside an ambient `.d.ts`.
+- [x] GitHub Pages deployment (`.github/workflows/deploy-pages.yml`): `frontend/next.config.ts` set to
+      `output: "export"` (basePath/assetPrefix conditional on a `GITHUB_PAGES` build-time env var, so local
+      dev is unaffected), `generateStaticParams()` added to `/compounds/[name]` so all 10 compound pages
+      export statically, and the two raw `<a href="/limitations">` links (which bypass Next's basePath
+      rewriting) replaced with `next/link`. The workflow runs the full real-data pipeline from scratch in CI
+      (fresh Postgres service container, live PubChem/ChEMBL/BindingDB/openFDA ingestion) before building and
+      publishing the static site, so the deployed dashboard is a frozen snapshot of that CI run, not a live
+      view of the database. Verified locally end-to-end: built with `GITHUB_PAGES=true`, served from a
+      `/Similarity-PEDs/` subpath, checked with curl and a zero-console-error Playwright screenshot.
 
 ## Phase 15 — Testing and documentation (ongoing)
 - [x] Chemistry unit tests (parsing, descriptors, InChIKey vs. known PubChem value, Tanimoto similarity,

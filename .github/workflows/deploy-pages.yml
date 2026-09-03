@@ -1,0 +1,140 @@
+name: Deploy dashboard to GitHub Pages
+
+# Runs the real research pipeline from scratch (fresh Postgres, live PubChem/ChEMBL/BindingDB/
+# openFDA calls) and builds the Next.js dashboard as a static export against that freshly
+# ingested data, then publishes it to GitHub Pages. There is no request-time backend on Pages --
+# every page's data is fetched once, at build time, from the FastAPI backend this workflow starts.
+#
+# One-time manual step (cannot be done from this workflow): in the repo's Settings > Pages, set
+# "Source" to "GitHub Actions".
+#
+# Optional: add an OPENFDA_API_KEY repository secret to raise the openFDA rate limit for repeated
+# same-day runs (keyless FAERS ingestion works fine for this project's ~10-compound cohort; see
+# pipelines/faers/README.md).
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: structure_to_safety
+          POSTGRES_PASSWORD: changeme_local_dev_only
+          POSTGRES_DB: structure_to_safety
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U structure_to_safety"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      POSTGRES_USER: structure_to_safety
+      POSTGRES_PASSWORD: changeme_local_dev_only
+      POSTGRES_DB: structure_to_safety
+      POSTGRES_HOST: localhost
+      POSTGRES_PORT: "5432"
+      OPENFDA_API_KEY: ${{ secrets.OPENFDA_API_KEY }}
+      RANDOM_SEED: "42"
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Install uv and Python 3.13
+        uses: astral-sh/setup-uv@v10.0.1
+        with:
+          python-version: "3.13"
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+
+      - name: Install Python dependencies
+        run: make venv
+
+      - name: Apply database migrations
+        run: make db-migrate
+
+      - name: Run real-data ingestion pipeline (Phases 3-6)
+        run: make ingest
+
+      - name: Build phenotype matrices (Phase 8)
+        run: make build-datasets
+
+      - name: Run similarity/matrix-association/clustering/misuse/sensitivity analyses (Phase 9-11)
+        run: make analyze
+
+      - name: Generate figures and research reports (Phase 12-13)
+        run: |
+          make figures
+          make report
+
+      - name: Run backend test suite (Phase 15)
+        run: make test
+
+      - name: Start FastAPI backend for the frontend build to read from
+        run: |
+          uv run uvicorn backend.app.main:app --host 127.0.0.1 --port 8000 &
+          echo "Waiting for the backend to become healthy..."
+          for i in $(seq 1 30); do
+            if curl -sf http://127.0.0.1:8000/health > /dev/null; then
+              echo "Backend is up."
+              break
+            fi
+            sleep 1
+          done
+          curl -sf http://127.0.0.1:8000/health > /dev/null || {
+            echo "Backend did not become healthy in time" >&2
+            exit 1
+          }
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v6
+
+      - name: Set up Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Build static frontend (fetches real data from the backend above at build time)
+        working-directory: frontend
+        env:
+          BACKEND_API_URL: http://127.0.0.1:8000
+          GITHUB_PAGES: "true"
+        run: npm run build
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: frontend/out
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5

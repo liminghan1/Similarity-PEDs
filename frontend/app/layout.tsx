@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import Link from "next/link";
 import { DisclaimerBanner } from "@/components/DisclaimerBanner";
 import { Nav } from "@/components/Nav";
 import "./globals.css";
@@ -34,9 +35,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <footer className="border-t border-slate-200 bg-white py-6 text-center text-xs text-slate-500">
           Structure-to-Safety is a research/portfolio project. It does not provide dosing, cycle,
           or product-safety recommendations. See{" "}
-          <a href="/limitations" className="underline">
+          <Link href="/limitations" className="underline">
             Limitations
-          </a>
+          </Link>
           .
         </footer>
       </body>
