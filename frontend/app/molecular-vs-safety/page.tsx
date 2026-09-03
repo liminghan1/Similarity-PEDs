@@ -1,4 +1,5 @@
 import { Card } from "@/components/Card";
+import { ChartExplainer } from "@/components/ChartExplainer";
 import { CompoundPairComparison } from "@/components/CompoundPairComparison";
 import { ScatterPlot } from "@/components/charts/ScatterPlot";
 import { AnalysisLabelBadge, ProvenanceBadge } from "@/components/ProvenanceBadge";
@@ -65,9 +66,31 @@ export default async function MolecularVsSafetyPage() {
             </span>
           </div>
         </div>
+        <ChartExplainer>
+          <strong>Spearman rho</strong> measures how consistently one distance ranks alongside the
+          other, from -1 (perfectly opposite -- more structurally similar pairs tend to have{" "}
+          <em>more</em> different safety profiles) through 0 (no relationship) to +1 (perfectly
+          matching -- more structurally similar pairs tend to have more similar safety profiles,
+          which is what H2 predicted). A negative or near-zero rho, as found here, is evidence
+          against the hypothesis. The <strong>p-value</strong> is the probability of seeing a rho
+          this extreme by random chance alone if there were truly no relationship -- it comes from
+          comparing the observed rho against 9,999 random relabelings of the same data (a
+          permutation test), not a textbook formula. Smaller p = stronger evidence; a one-sided
+          p=0.956 here means the data point in the opposite direction from what was predicted.
+        </ChartExplainer>
       </Card>
 
       <Card title="All compound pairs: structural vs. safety distance">
+        <ChartExplainer>
+          Each dot is one pair of compounds (e.g. &quot;testosterone vs. trenbolone&quot;). The x-axis is how
+          structurally different the two compounds are (0 = essentially identical, 1 = very
+          different). The y-axis is how different their FAERS safety-reporting profiles are (0 =
+          nearly identical reporting patterns, higher = more different). If molecular similarity
+          predicted safety-profile similarity, structurally-similar pairs (left side) would cluster
+          toward the bottom (low safety distance too), producing a rising trend left-to-right. The
+          statistical test above (Spearman rho, not a visual read of this scatter) found no such
+          trend in this data.
+        </ChartExplainer>
         <ScatterPlot
           x={scatterX}
           y={scatterY}

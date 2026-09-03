@@ -10,6 +10,7 @@ export function Heatmap({
   zmin,
   zmax,
   height = 500,
+  valueLabel = "value",
 }: {
   labels: string[];
   columns: string[];
@@ -18,6 +19,9 @@ export function Heatmap({
   zmin?: number;
   zmax?: number;
   height?: number;
+  /** What the color/number represents, e.g. "logROR" -- shown in the colorbar title and on hover
+   * instead of Plotly's default generic "x/y/z" labels. */
+  valueLabel?: string;
 }) {
   return (
     <div style={{ height }}>
@@ -34,6 +38,8 @@ export function Heatmap({
             hoverongaps: false,
             texttemplate: "%{z:.2f}",
             textfont: { size: 9 },
+            hovertemplate: `%{y} × %{x}<br>${valueLabel}: %{z:.2f}<extra></extra>`,
+            colorbar: { title: { text: valueLabel, side: "right" } },
           },
         ]}
         layout={{

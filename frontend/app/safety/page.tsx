@@ -1,4 +1,5 @@
 import { Card } from "@/components/Card";
+import { ChartExplainer } from "@/components/ChartExplainer";
 import { Heatmap } from "@/components/charts/Heatmap";
 import { ProvenanceBadge } from "@/components/ProvenanceBadge";
 import { getSafetyPhenotype, getSafetySignalTable } from "@/lib/api";
@@ -23,6 +24,15 @@ export default async function SafetyPhenotypePage() {
       </Card>
 
       <Card title="logROR heatmap">
+        <ChartExplainer>
+          Each cell compares one compound (row) to the rest of the 10-compound cohort, for one
+          adverse-event category (column). <strong>Red means that category is reported more often
+          for this compound than for the cohort average; blue means less often</strong> -- the
+          deeper the color, the bigger the difference. Light gray (near 0) means roughly no
+          difference. A cell being red does not mean that reaction is common or dangerous for this
+          compound in absolute terms, only that it shows up disproportionately more in FAERS
+          reports for this compound versus the others. Hover a cell for the exact number.
+        </ChartExplainer>
         <Heatmap
           labels={matrix.labels}
           columns={matrix.columns}
@@ -31,14 +41,27 @@ export default async function SafetyPhenotypePage() {
           zmin={-3}
           zmax={3}
           height={480}
+          valueLabel="logROR"
         />
         <p className="mt-2 text-xs text-slate-500">
-          Gray/blank cells: sparse (fewer than 3 reports for that cell) or the compound falls
+          White/blank cells: sparse (fewer than 3 reports for that cell) or the compound falls
           below the 20-report minimum -- excluded as unreliable, not shown as zero.
         </p>
       </Card>
 
       <Card title="Full signal table (a/b/c/d, ROR, CI)">
+        <ChartExplainer>
+          This is the raw arithmetic behind every cell in the heatmap above, so nothing is a &quot;black
+          box.&quot; <strong>a/b/c/d</strong> are the four counts of a 2x2 table: a = reports of this
+          compound with this reaction category, b = reports of this compound without it, c =
+          reports of other cohort compounds with it, d = reports of other cohort compounds without
+          it. <strong>ROR</strong> (Reporting Odds Ratio) = (a/b) &divide; (c/d) -- how many times
+          more (or less) often this reaction is reported for this compound versus the rest of the
+          cohort. <strong>logROR</strong> is just log(ROR): 0 = no difference, positive = reported
+          more, negative = reported less (this is what&apos;s colored in the heatmap). The 95% CI is the
+          range of plausible ROR values; when it includes 1, the apparent difference could be
+          chance.
+        </ChartExplainer>
         <p className="mb-3 text-xs text-slate-500">
           Per research/analysis_plan.md Sec. 1: report count, serious/hospitalization/death
           counts, and the full 2x2 contingency table are always shown alongside logROR, never a

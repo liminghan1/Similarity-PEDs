@@ -27,7 +27,9 @@ export function ScatterPlot({
             x,
             y,
             text,
-            hoverinfo: text ? "text+x+y" : "x+y",
+            hovertemplate: text
+              ? `%{text}<br>${xTitle ?? "x"}: %{x:.3f}<br>${yTitle ?? "y"}: %{y:.3f}<extra></extra>`
+              : `${xTitle ?? "x"}: %{x:.3f}<br>${yTitle ?? "y"}: %{y:.3f}<extra></extra>`,
             marker: { size: 10, color: "#4477aa", line: { color: "#1e293b", width: 1 } },
           },
         ]}

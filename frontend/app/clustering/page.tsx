@@ -1,4 +1,5 @@
 import { Card, Stat } from "@/components/Card";
+import { ChartExplainer } from "@/components/ChartExplainer";
 import { AnalysisLabelBadge, ProvenanceBadge } from "@/components/ProvenanceBadge";
 import { getClustering } from "@/lib/api";
 
@@ -18,6 +19,14 @@ export default async function ClusteringPage() {
             independently on the structure and safety distance matrices, then compared.
           </span>
         </div>
+        <ChartExplainer>
+          Two separate groupings were made -- one from molecular structure, one from FAERS safety
+          profiles -- each sorting the 10 compounds into a small number of groups (k) of compounds
+          that are most similar to each other on that axis, using no information about the other
+          axis. If molecular structure predicted safety-reporting behavior, compounds grouped
+          together by structure should tend to also be grouped together by safety profile. The
+          three numbers below measure whether that happened.
+        </ChartExplainer>
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
           <Stat label="Compounds clustered" value={clustering.n_compounds} />
           <Stat
@@ -37,10 +46,17 @@ export default async function ClusteringPage() {
           />
         </div>
         <p className="mt-3 text-sm text-slate-600">
-          A negative Adjusted Rand Index means the structure-based and safety-based cluster
-          assignments agree <strong>no better than chance</strong> (ARI=0 is chance-level; negative
-          values occur with small samples and indicate systematic disagreement). This is a
-          negative/null result, reported as such -- not reframed as a positive finding.
+          <strong>Cophenetic correlation</strong> (0-1) is a quality check on the clustering itself:
+          how faithfully the grouping preserves the actual pairwise distances -- closer to 1 means
+          the groups are a good summary of the underlying data, independent of whether the two
+          groupings agree with each other. <strong>Adjusted Rand Index (ARI)</strong> and{" "}
+          <strong>Normalized Mutual Information (NMI)</strong> both measure that agreement between
+          the structure-based and safety-based groupings: 1 = identical groupings, 0 = no better
+          than randomly guessing which compounds go together, and (for ARI specifically) negative
+          values mean the two groupings disagree more than random chance would. A negative ARI
+          here means the structure-based and safety-based clusters agree{" "}
+          <strong>no better than chance</strong> -- this is a negative/null result, reported as
+          such, not reframed as a positive finding.
         </p>
       </Card>
 
@@ -49,6 +65,16 @@ export default async function ClusteringPage() {
       </Card>
 
       <Card title="Cluster assignments: structure vs. safety">
+        <ChartExplainer>
+          The cluster numbers themselves are arbitrary labels (1, 2, ...) with no inherent order or
+          meaning -- what matters is which compounds share the same number within a column.
+          Compounds with the same &quot;Structure cluster&quot; number were grouped together based on
+          molecular similarity; compounds with the same &quot;Safety cluster&quot; number were grouped
+          together based on FAERS reporting-profile similarity. If the two columns told the same
+          story, compounds sharing a structure cluster would also tend to share a safety cluster --
+          here, most compounds share safety cluster 1 regardless of their structure cluster,
+          which is the low-agreement result summarized above.
+        </ChartExplainer>
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-slate-300 text-left text-xs uppercase tracking-wide text-slate-500">

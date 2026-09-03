@@ -1,4 +1,5 @@
 import { Card, Stat } from "@/components/Card";
+import { ChartExplainer } from "@/components/ChartExplainer";
 import { ForestPlot } from "@/components/charts/ForestPlot";
 import { AnalysisLabelBadge, ProvenanceBadge } from "@/components/ProvenanceBadge";
 import { getMisuseAnalysis } from "@/lib/api";
@@ -48,6 +49,16 @@ export default async function MisusePage() {
       </Card>
 
       <Card title="Outcome severity: misuse vs. therapeutic (odds ratio)">
+        <ChartExplainer>
+          Each dot is one outcome. The dashed vertical line at 1 means &quot;no difference between the
+          two groups.&quot; A dot to the <strong>right</strong> of the line means that outcome was
+          reported proportionally more often among misuse-coded reports than therapeutic-coded
+          ones; a dot to the <strong>left</strong> means less often. The horizontal line through
+          each dot is the 95% confidence interval -- the range of plausible odds ratios given the
+          sample size; if that line crosses the dashed line at 1, the difference is not
+          statistically distinguishable from chance. <strong>Red dots</strong> reached the
+          conventional p&lt;0.05 significance threshold; gray dots did not.
+        </ChartExplainer>
         <ForestPlot rows={seriousnessRows} height={260} />
         <p className="mt-2 text-xs text-slate-500">
           OR &gt; 1 means the outcome is reported proportionally more often in the misuse-coded
@@ -57,6 +68,13 @@ export default async function MisusePage() {
       </Card>
 
       <Card title="Adverse-event category: misuse vs. therapeutic (odds ratio)">
+        <ChartExplainer>
+          Same reading as the chart above, now broken out by adverse-event category instead of by
+          outcome severity: a category to the right of the dashed line at OR=1 is reported
+          proportionally more often among misuse-coded reports; to the left, more often among
+          therapeutic-coded reports. The x-axis is log-scaled (equal visual distance = equal
+          multiplicative difference) since these odds ratios range from about 0.4x to nearly 8x.
+        </ChartExplainer>
         <ForestPlot rows={categoryRows} height={420} />
         <p className="mt-2 text-xs text-slate-500">
           Not corrected for multiple comparisons across the {categoryRows.length} categories --

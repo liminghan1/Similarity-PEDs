@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { ChartExplainer } from "@/components/ChartExplainer";
 import { BarChart } from "@/components/charts/BarChart";
 import type { MatrixResponse } from "@/types/api";
 
@@ -131,14 +132,20 @@ export function CompoundPairComparison({
         </table>
       </div>
 
+      <ChartExplainer>
+        Bars above zero mean that adverse-event category is reported more often for this compound
+        than for the rest of the cohort; bars below zero mean less often (same logROR measure as
+        the heatmap on the Safety Phenotype page). Gray bars mean there wasn&apos;t enough data
+        (fewer than 3 reports) to compute a reliable number for that category.
+      </ChartExplainer>
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
         <div>
           <h3 className="mb-2 text-sm font-semibold capitalize text-slate-700">{compoundA}: safety profile (logROR)</h3>
-          <BarChart data={safetyBarData.a} height={320} />
+          <BarChart data={safetyBarData.a} height={320} valueLabel="logROR" />
         </div>
         <div>
           <h3 className="mb-2 text-sm font-semibold capitalize text-slate-700">{compoundB}: safety profile (logROR)</h3>
-          <BarChart data={safetyBarData.b} height={320} />
+          <BarChart data={safetyBarData.b} height={320} valueLabel="logROR" />
         </div>
       </div>
     </div>
