@@ -1,5 +1,11 @@
 @import "tailwindcss";
 
+/* This dashboard's Cards/tables are hardcoded light (bg-white, bg-slate-50, text-slate-*) --
+   there is no dark palette anywhere in the design. Deliberately no `prefers-color-scheme: dark`
+   override here: the scaffolded Next.js default flipped `body`'s text color to near-white on a
+   dark viewer while every Card stayed explicitly bg-white, making unstyled text (e.g. bare <td>
+   cells) nearly invisible white-on-white. Keeping the page in one consistent light mode avoids
+   that mismatch rather than half-supporting a dark mode nothing else here was designed for. */
 :root {
   --background: #ffffff;
   --foreground: #171717;
@@ -10,13 +16,6 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
 }
 
 body {
