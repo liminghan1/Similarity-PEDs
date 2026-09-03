@@ -330,8 +330,45 @@ drifts toward these must be stopped and flagged, not implemented.
 - [x] 13 new tests (incl. the `filter_report_compound` None-vs-`.isna()` regression suite and a
       documented zero-vector cosine-distance edge case), 187 total, all passing.
 
-## Phase 12 — Figures (not started)
-- [ ] Figures 1-10 per project brief Sec. 33.
+## Phase 12 — Figures ✅ (2026-09-03)
+- [x] `analysis/figures.py` — Figures 1, 3-10 (Figure 2 already produced by
+      `analysis/missingness_analysis.py`, Phase 5), all built from real artifacts already computed
+      and tested in Phases 8-11 (no figure computes a new statistic). Every figure states its
+      sample size in-caption and is saved as both 300 dpi PNG and vector PDF.
+- [x] **Caught 3 real rendering bugs by inspecting the actual output, not just running the
+      script without erroring** — each fixed and documented inline:
+      1. Figure 9's per-point error-bar coloring passed a list to `ax.errorbar`'s `ecolor`
+         (which takes one color, not a per-point list) — `ValueError: RGBA sequence should have
+         length 3 or 4`. Fixed by drawing each error bar individually.
+      2. Figure 8's "NOT COMPUTABLE" label on a zero-height bar was positioned relative to that
+         zero height, landing *above* y=0 (since all real data are negative) and overlapping the
+         wrapped title text. Fixed with explicit y-limits and fixed label offsets; the same fix
+         was applied to Figure 10 pre-emptively once the pattern was recognized.
+      3. **The most substantively important one**: Figure 6 (safety similarity heatmap) used a
+         fixed `vmin=0, vmax=1`, silently clipping every strongly negative-correlation cell to
+         the colormap floor — which, for a dark sequential colormap, rendered as solid black,
+         visually indistinguishable from the "gray = undefined" missing-data color. Testosterone's
+         entire row appeared to have "no data" against every other compound, even though the
+         underlying CSV had zero NaNs there. Root cause: a correlation-based distance (1 -
+         Pearson r) ranges [0,2], so its similarity ranges **[-1,1]**, not [0,1] like the
+         min-max-normalized structural distance used in Figure 5. Fixed with a diverging
+         colormap (RdBu_r) and vmin=-1/vmax=1 for the safety heatmap specifically.
+      **This fix surfaced a real, substantively important finding, not just a cosmetic one**:
+      testosterone's safety-phenotype profile is strongly *anti-correlated* with every other
+      cohort compound (r as low as -0.96), while the other 9 compounds are all strongly
+      *positively* correlated with each other (r = 0.41-0.95) -- directly explaining Phase 10's
+      clustering result (testosterone alone in its own safety cluster) and reinforcing the
+      confounding concern flagged in Phase 8 (testosterone's dominant report volume skewing the
+      cohort-relative comparison for every other compound).
+      Figure 3 (molecular PCA) and Figure 4 (safety PCA, restricted to the 6/11 fully-populated
+      AE categories rather than imputing) independently corroborate earlier findings: Figure 3
+      separates the three 17-alpha-alkylated orals from the rest (matching Phase 10's clustering
+      and H2's structural signal); Figure 4 shows testosterone as an extreme PC1 outlier (75%
+      variance explained).
+      No new unit tests were added for this module — its correctness was established by direct
+      visual inspection against known data facts (e.g. "testosterone's row has zero NaNs"), the
+      same standard used to catch the 3 bugs above; this mirrors Phase 5's missingness_analysis.py,
+      which also has no dedicated plot-rendering tests.
 
 ## Phase 13 — Research report (not started)
 - [ ] `reports/research_report.md`, `reports/data_quality.md` (auto-populated from analysis outputs).

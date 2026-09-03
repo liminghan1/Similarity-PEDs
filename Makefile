@@ -77,7 +77,8 @@ analyze:
 figures:
 	@echo "== Figure 2: data-coverage heatmap (Phase 5) =="
 	uv run python -m analysis.missingness_analysis
-	@echo "NOTE: Figures 1, 3-10 are not yet implemented -- see TODO.md Phase 12."
+	@echo "== Figures 1, 3-10 (Phase 12) =="
+	uv run python -m analysis.figures
 
 report:
 	@echo "Not yet implemented -- see TODO.md Phase 13."
