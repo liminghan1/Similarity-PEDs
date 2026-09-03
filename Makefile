@@ -65,7 +65,13 @@ analyze:
 	uv run python -m analysis.similarity_analysis
 	@echo "== Primary + secondary matrix-association tests, H1/H2 (Phase 9) =="
 	uv run python -m analysis.matrix_association
-	@echo "NOTE: clustering / misuse analysis (Phase 10) and sensitivity analyses (Phase 11) are not yet implemented -- see TODO.md."
+	@echo "== Clustering, structure vs. safety (Phase 10) =="
+	uv run python -m analysis.clustering
+	@echo "== Therapeutic vs. misuse comparison, H3 (Phase 10) =="
+	uv run python -m analysis.misuse_analysis
+	@echo "== Multivariate association, H4 (Phase 10) =="
+	uv run python -m analysis.multivariate_association
+	@echo "NOTE: sensitivity analyses (Phase 11) are not yet implemented -- see TODO.md."
 
 figures:
 	@echo "== Figure 2: data-coverage heatmap (Phase 5) =="

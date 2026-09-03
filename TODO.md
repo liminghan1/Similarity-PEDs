@@ -257,8 +257,49 @@ drifts toward these must be stopped and flagged, not implemented.
       pulling the cohort-relative safety background, flagged as a concern during Phase 8's sanity
       check) — that discussion belongs in the research report and sensitivity analyses, not here.
 
-## Phase 10 — Secondary analyses (not started)
-- [ ] `analysis/clustering.py`, `analysis/misuse_analysis.py`, multivariate association (H4).
+## Phase 10 — Secondary analyses ✅ (2026-09-03)
+- [x] `analysis/clustering.py` — independent hierarchical clustering (average linkage, k chosen
+      by max silhouette over k=2..5) of the structure and safety distance matrices; ARI/NMI
+      comparison; cophenetic correlation per dendrogram as a QC diagnostic; PCA+k-means labeled
+      strictly EXPLORATORY (Sec. 20 forbids quantitative UMAP interpretation; UMAP itself deferred
+      to Phase 12 figures only). **Caught and fixed a real bug**: `cophenet(Z, condensed)` was
+      unpacked in the wrong order (its first return value already *is* the cophenetic correlation
+      coefficient; my code discarded it and tried to `np.corrcoef` a scalar against a vector),
+      caught by a test, not by inspection — see the fix note in `clustering.py`.
+      **Real result**: structure clustering (k=2) recovers a chemically sensible split — the three
+      17-alpha-alkylated oral compounds (oxandrolone, oxymetholone, stanozolol) cluster together,
+      separate from the rest. Safety clustering (k=2) separates testosterone alone from every other
+      compound. **ARI=-0.111, NMI=0.081** — essentially no agreement between the two clusterings,
+      reinforcing Phase 9's null H2 finding via an independent method.
+- [x] `analysis/misuse_analysis.py` (H3) — THERAPEUTIC vs. MISUSE comparison (450 vs. 554 real
+      classified reports, both far above the 20-report minimum) on seriousness/hospitalization/
+      death (odds ratios + 95% CI, reusing `compute_ror`'s formula since an odds ratio is the same
+      statistic regardless of which axis is "exposure") and AE-category presence (Fisher's exact).
+      **Caught a real bug that would have silently zeroed out every result on live data**: pandas
+      3.0's string-dtype inference calls `str()` on `UseClassification` enum members, and a
+      `class Foo(str, Enum)` mixin's `__str__` returns `"Foo.MEMBER"`, not the value — every
+      group-equality filter matched zero rows until fixed to compare against `.value` explicitly
+      (caught by a test asserting misuse_n=6 that returned 0, then confirmed against real data
+      before the fix). Also fixed a live-only failure: `FaersReport.age` is Postgres NUMERIC,
+      returned as `Decimal` by psycopg, which crashes `scipy.stats.mannwhitneyu`'s `np.isnan`
+      check — fixed via `pd.to_numeric` at the DB-loading boundary.
+      **Real result**: misuse-associated reports show significantly higher serious (OR=1.54,
+      p=0.024) and hospitalization (OR=1.53, p<0.001) proportions than therapeutic-associated
+      reports, but **not** significantly higher death proportion (OR=1.01, p=1.0) — a genuine,
+      nuanced finding, not forced into a single "misuse is worse" narrative. AE-category
+      differences: reproductive (OR=7.67, p=7e-9), hepatic (OR=2.34), dermatologic (OR=6.23), and
+      cardiovascular (OR=1.94) all significantly elevated in misuse-associated reports; thrombotic
+      is significantly *lower* in misuse (OR=0.43) — real, substantive support for H3.
+- [x] `analysis/multivariate_association.py` (H4) — **adapted from receptor to molecular
+      descriptors** (same infeasibility as Phase 9's H1/H2-receptor pivot, documented in the
+      module docstring rather than silently substituted), labeled strictly EXPLORATORY given n=10.
+      Ridge regression, leave-one-out CV R^2, 999-permutation significance test per AE category.
+      **Real result**: every one of 11 categories shows a negative LOOCV R^2 and a non-significant
+      permutation p-value (all > 0.05, most > 0.2) — no evidence molecular descriptors predict any
+      category's logROR, consistent with Phase 9's null finding via an independent (multivariate
+      predictive, not pairwise-similarity) method.
+- [x] 16 new tests (4 clustering incl. hand-verified two-cluster recovery, 11 misuse-analysis incl.
+      the enum/Decimal regressions, 5 multivariate incl. signal-vs-noise recovery), 174 total.
 
 ## Phase 11 — Sensitivity analyses (not started)
 - [ ] `analysis/sensitivity.py` implementing all 8 pre-specified sensitivity analyses.
