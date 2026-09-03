@@ -101,6 +101,38 @@ class TestFetchCompound:
         assert record.molecular_weight == pytest.approx(288.4)
 
 
+class TestRetryBehavior:
+    """Regression coverage: the @retry decorator on _get previously only retried
+    httpx.TransportError, so a transient 5xx from the live API aborted ingestion instead of
+    being retried (found in CI against ChEMBL; pipelines/http_retry.py fixes all four clients).
+    """
+
+    def test_transient_500_is_retried_then_succeeds(self, client, monkeypatch):
+        calls = {"n": 0}
+
+        def flaky_get(url: str):
+            calls["n"] += 1
+            if calls["n"] == 1:
+                return _FakeResponse({}, status_code=500)
+            return _FakeResponse(TESTOSTERONE_CID_RESPONSE)
+
+        monkeypatch.setattr(client._client, "get", flaky_get)
+        assert client.get_cid_by_name("testosterone") == 6013
+        assert calls["n"] == 2
+
+    def test_404_is_not_retried(self, client, monkeypatch):
+        calls = {"n": 0}
+
+        def always_404(url: str):
+            calls["n"] += 1
+            return _FakeResponse({}, status_code=404)
+
+        monkeypatch.setattr(client._client, "get", always_404)
+        with pytest.raises(PubChemLookupError):
+            client.get_cid_by_name("not-a-real-compound")
+        assert calls["n"] == 1
+
+
 class TestValidateStructure:
     def test_valid_testosterone_structure_passes(self):
         from pipelines.pubchem.ingest import validate_structure
