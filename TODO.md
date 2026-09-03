@@ -301,8 +301,34 @@ drifts toward these must be stopped and flagged, not implemented.
 - [x] 16 new tests (4 clustering incl. hand-verified two-cluster recovery, 11 misuse-analysis incl.
       the enum/Decimal regressions, 5 multivariate incl. signal-vs-noise recovery), 174 total.
 
-## Phase 11 — Sensitivity analyses (not started)
-- [ ] `analysis/sensitivity.py` implementing all 8 pre-specified sensitivity analyses.
+## Phase 11 — Sensitivity analyses ✅ (2026-09-03)
+- [x] `analysis/sensitivity.py` — all 8 pre-specified sensitivities (research/analysis_plan.md
+      Sec. 7), each re-running the one fully-computable Phase 9 result (structure-only vs. safety
+      distance, Mantel test) under a single varied condition, holding everything else fixed.
+      **Caught a real bug before it silently corrupted Sensitivity 2**: pandas' `col == None` does
+      not match missing values (confirmed empirically: returns all-False even for genuine NaN/None
+      cells), so filtering for "parent-only" (`formulation_id=None`) came back completely empty
+      until fixed to use `.isna()` — refactored out of an inline closure into a tested,
+      module-level `filter_report_compound()` so this class of bug has a direct regression test.
+- [x] **Real results — all 6 computable variants remain consistent with the Phase 9 null finding**
+      (no p-value drops below 0.05; rho stays negative or near-zero throughout):
+      | Sensitivity | n | rho | p (one-sided) |
+      |---|---|---|---|
+      | 1. Lower report thresholds (10/2) | 10 | -0.074 | 0.562 |
+      | 1. Higher report thresholds (30/5) | 10 | -0.217 | 0.845 |
+      | 2. Parent compounds only (no esters) | 9 | -0.047 | 0.512 |
+      | 3. High-confidence drug-mapping only | 10 | -0.293 | 0.958 |
+      | 4. Individual MedDRA terms (top 20) vs. categories | 9 | -0.423 | 0.971 |
+      | 5. Alternate metrics (Dice+cosine structure; Spearman safety) | 10 | -0.157 | 0.806 |
+      | 6. Standardized report-proportion phenotype | 10 | -0.039 | 0.601 |
+      | 8. Misuse-associated reports only | 8 | 0.018 | 0.440 |
+      Two variants are honestly reported as **NOT COMPUTABLE**, not silently skipped: 6b
+      (all-FAERS background) cannot be built because this project only ever ingested
+      cohort-relevant FAERS reports, not the full FAERS database (a real, structural data-scope
+      limitation, not a bug); 7 (therapeutic-only reports) has no >=4-compound complete subset,
+      since several compounds (e.g. trenbolone) have zero therapeutic-classified reports.
+- [x] 13 new tests (incl. the `filter_report_compound` None-vs-`.isna()` regression suite and a
+      documented zero-vector cosine-distance edge case), 187 total, all passing.
 
 ## Phase 12 — Figures (not started)
 - [ ] Figures 1-10 per project brief Sec. 33.

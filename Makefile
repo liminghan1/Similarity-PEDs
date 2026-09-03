@@ -71,7 +71,8 @@ analyze:
 	uv run python -m analysis.misuse_analysis
 	@echo "== Multivariate association, H4 (Phase 10) =="
 	uv run python -m analysis.multivariate_association
-	@echo "NOTE: sensitivity analyses (Phase 11) are not yet implemented -- see TODO.md."
+	@echo "== Sensitivity analyses (Phase 11) =="
+	uv run python -m analysis.sensitivity
 
 figures:
 	@echo "== Figure 2: data-coverage heatmap (Phase 5) =="

@@ -184,6 +184,9 @@ def compute_signal_table(
     report_category: pd.DataFrame,
     compound_names: dict[int, str],
     categories: list[str],
+    *,
+    min_cell_reports: int = MIN_CELL_REPORTS,
+    min_compound_reports: int = MIN_COMPOUND_REPORTS,
 ) -> pd.DataFrame:
     """Pure combinatorial core of the safety signal table -- given report-level membership
     (which reports mention which cohort compound; which reports have a reaction in which
@@ -225,8 +228,8 @@ def compute_signal_table(
                     "ci_low": result.ci_low,
                     "ci_high": result.ci_high,
                     "continuity_correction_applied": result.continuity_correction_applied,
-                    "sparse_cell": a < MIN_CELL_REPORTS,
-                    "compound_meets_minimum": n_total >= MIN_COMPOUND_REPORTS,
+                    "sparse_cell": a < min_cell_reports,
+                    "compound_meets_minimum": n_total >= min_compound_reports,
                 }
             )
     return pd.DataFrame(rows)
