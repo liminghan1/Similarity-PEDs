@@ -434,11 +434,22 @@ drifts toward these must be stopped and flagged, not implemented.
 - [x] Chemistry unit tests (parsing, descriptors, InChIKey vs. known PubChem value, Tanimoto similarity,
       fingerprint bit-length, Bemis-Murcko scaffold).
 - [x] Statistics unit tests (ROR/PRR/pActivity).
-- [ ] FAERS dedup/mapping/classification tests (Phase 6).
-- [ ] Reproducibility test: same data + seed → same primary result (Phase 9).
+- [x] FAERS dedup/mapping/classification tests (Phase 6): mapping and classification were already
+      covered (`test_faers_normalization.py`, `test_faers_classification.py`); added
+      `test_faers_dedup.py` for `deduplicate_versions()` (superseded-version marking, single-version
+      no-op, `NULL`-version handling, rows never deleted) — run against the real local Postgres DB
+      inside an external-transaction fixture (SAVEPOINT restarted after each internal `db.commit()`)
+      so no synthetic row is ever left in the real dataset (verified: 0 leaked rows after the run).
+- [x] Reproducibility test: same data + seed → same primary result (Phase 9):
+      `test_reproducibility.py` runs the real H2 (structure-only vs. safety) Mantel test twice
+      against the committed `artifacts/matrices/*_distance_matrix.csv` and asserts bit-identical
+      output; confirms a different seed changes the permutation/bootstrap distribution while the
+      observed statistic (data-only) does not; and confirms the freshly-computed result matches
+      the persisted `matrix_association_results.json` used in `reports/research_report.md`.
 - [x] README, database schema doc.
 - [x] Methods documentation page (Phase 14).
-- [x] 209 backend tests passing (`uv run pytest backend/tests`), including the 22 dashboard API tests.
+- [x] 216 backend tests passing (`uv run pytest backend/tests`), including the 22 dashboard API
+      tests, the 4 dedup tests, and the 3 reproducibility tests added in this pass.
 
 ---
 
