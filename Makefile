@@ -81,8 +81,8 @@ figures:
 	uv run python -m analysis.figures
 
 report:
-	@echo "Not yet implemented -- see TODO.md Phase 13."
-	@exit 1
+	@echo "== Research report + data quality report (Phase 13) =="
+	uv run python -m analysis.generate_reports
 
 clean:
 	find . -type d -name "__pycache__" -not -path "./.venv/*" -exec rm -rf {} +

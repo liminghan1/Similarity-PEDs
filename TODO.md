@@ -370,8 +370,42 @@ drifts toward these must be stopped and flagged, not implemented.
       same standard used to catch the 3 bugs above; this mirrors Phase 5's missingness_analysis.py,
       which also has no dedicated plot-rendering tests.
 
-## Phase 13 — Research report (not started)
-- [ ] `reports/research_report.md`, `reports/data_quality.md` (auto-populated from analysis outputs).
+## Phase 13 — Research report ✅ (2026-09-03)
+- [x] `analysis/generate_reports.py` produces both `reports/research_report.md` and
+      `reports/data_quality.md` from one command. Per project brief Sec. 34/43, the Results and
+      data-quality sections are populated **programmatically** from the real artifacts (`etl_runs`,
+      every phenotype/distance matrix, every analysis result JSON) so the numbers cannot drift out
+      of sync with a re-run; Abstract/Introduction/Methods/Discussion/Limitations/Conclusion are
+      authored prose templated in the same script (Sec. 34 requires automation only for Results).
+- [x] **Caught 3 real bugs by reading the generated output, not just running the script**:
+      1. A dict-key case mismatch (`mm.get('MANUAL_REVIEW', 0)` against lowercase-enum-value keys)
+         silently reported 0 manual-review cases in `data_quality.md` when the true count was 1.
+      2. A mislabeled statistic: "distinct raw FAERS drug-name strings" was actually the total
+         matched-row count (11,858), not the true distinct-string count (683, now queried and
+         reported separately).
+      3. A broken sentence in the Results section — "(both strata exceed the True 20-report
+         minimum)" — from interpolating a raw Python dict/boolean directly into prose. Rewrote the
+         whole Results-section template to compute clean, named values first, fixing this and
+         several purely-cosmetic mid-sentence line-wrap artifacts from the same root cause.
+- [x] `reports/research_report.md` states, with real numbers throughout: H1 (PRIMARY) NOT
+      COMPUTABLE (receptor coverage too sparse); H2 (SECONDARY) structure-only vs. safety, n=10,
+      rho=-0.293, p=0.956 one-sided -- no significant association, stable across 8/10 computable
+      sensitivity variants; clustering agreement ARI=-0.111/NMI=0.081; H3 (SECONDARY) therapeutic
+      (n=450) vs. misuse (n=554) -- significant seriousness/hospitalization differences (not death),
+      7/11 AE categories significantly different; H4 (EXPLORATORY) 0/11 categories significant.
+      Discussion connects the H2 null result to the real finding from Figure 6 (testosterone's
+      safety profile anti-correlated with the rest of the cohort, r as low as -0.96, plausibly
+      reflecting its 75% share of total report volume under the cohort-relative background design)
+      and to the structurally-sensible clustering of the three 17-alpha-alkylated oral compounds.
+      Limitations section is extensive (FAERS causal-inference limits, n=10 power, receptor
+      sparsity as a first-order limitation, the cohort-relative background's real consequences,
+      unadjusted confounding, non-MedDRA category taxonomy, unresolved cross-source duplicates,
+      residual normalization uncertainty).
+- [x] `reports/data_quality.md` reports, all queried live from the database: 10 compounds, 36
+      aliases, 17 formulations, 0 invalid structures; FAERS mapping-method distribution (8,958
+      exact_alias, 2,889 curated_match, 10 fuzzy_high_confidence, 1 manual_review); 0 reports
+      superseded by version dedup; 31,061 reactions / 4,057 distinct terms; full per-source
+      etl_runs table (read/inserted/rejected/notes); 10/110 sparse safety-phenotype cells.
 
 ## Phase 14 — Dashboard (not started — explicitly last)
 - [ ] Next.js frontend: Research Overview, Compound Explorer, Safety Phenotype, Molecular vs Safety, Clustering,
