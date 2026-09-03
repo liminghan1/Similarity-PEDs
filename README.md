@@ -31,15 +31,28 @@ reflected in `TODO.md`) for the explicit scope boundary.
 FAERS is a spontaneous, voluntary reporting system. It **cannot** establish incidence, prevalence, absolute
 risk, or causation. Every statistic derived from it in this project is described as a *reporting association*
 or *disproportionality signal*, never as a risk or causal effect. See the Limitations section of
-[`research/exclusion_rules.md`](research/exclusion_rules.md) and the (forthcoming) `reports/research_report.md`
-for the full discussion of confounding (age, sex, indication, polypharmacy, other PED exposure, reporting bias,
-product adulteration, lack of an exposure denominator, and more).
+[`research/exclusion_rules.md`](research/exclusion_rules.md) and
+[`reports/research_report.md`](reports/research_report.md) for the full discussion of confounding (age, sex,
+indication, polypharmacy, other PED exposure, reporting bias, product adulteration, lack of an exposure
+denominator, and more).
 
 ## Project status
 
-Early stage — research specification and reproducible project scaffolding are in place; data ingestion has not
-yet started. See [`TODO.md`](TODO.md) for the phase-by-phase build plan and current status, and
-[`docs/database_schema.md`](docs/database_schema.md) for the (implemented) database design.
+The full pipeline has run end to end against real data (10 cohort compounds, 7,433 deduplicated FAERS
+reports) and the pre-registered analysis plan has been executed. Headline results, in brief:
+
+- **H1 (primary, receptor pharmacology vs. safety phenotype): NOT COMPUTABLE.** Receptor bioactivity coverage
+  for this compound class is far sparser than anticipated (only 3/10 compounds have any qualifying
+  measurement) — a real data-availability gap, not a pipeline defect.
+- **H2 (secondary, structure-only vs. safety phenotype): no significant association found** (Spearman
+  rho = -0.293, one-sided p = 0.956), stable across all 8 computable sensitivity analyses.
+- **H3 (secondary, therapeutic-use vs. misuse): supported.** Misuse-associated reports show significantly
+  higher seriousness and hospitalization proportions, and substantial adverse-event-category differences.
+
+See [`reports/research_report.md`](reports/research_report.md) for the full report (abstract, methods, results,
+discussion, limitations), [`TODO.md`](TODO.md) for the phase-by-phase build plan and status, and
+[`docs/database_schema.md`](docs/database_schema.md) for the database design. The Next.js dashboard (Phase 14)
+is built and lets you explore all of the above interactively — see **Dashboard** below.
 
 ## Repository layout
 
@@ -99,18 +112,43 @@ make figures           # Phase 12: publication-quality figures
 make report             # Phase 13: research_report.md and data_quality.md
 ```
 
+## Dashboard
+
+The Next.js/FastAPI dashboard (Phase 14) explores results already produced by the pipeline above — it never
+recomputes anything itself. Run the pipeline commands first (or use existing `artifacts/`), then:
+
+```bash
+make api                              # FastAPI backend, http://127.0.0.1:8000 (also serves /docs)
+
+cd frontend
+cp .env.example .env.local            # BACKEND_API_URL=http://localhost:8000
+npm install
+npm run dev                           # Next.js dev server, http://localhost:3000
+```
+
+Pages: Research Overview (`/`), Compound Explorer (`/compounds`), Safety Phenotype (`/safety`), Molecular vs.
+Safety (`/molecular-vs-safety`), Clustering (`/clustering`), Therapeutic vs. Misuse (`/misuse`), Methods
+(`/methods`), Limitations (`/limitations`). Every page labels its data's provenance (OBSERVED / DERIVED /
+MODEL OUTPUT / INTERPRETATION, per Sec. 37 of the project brief) and carries a persistent disclaimer that
+FAERS-derived numbers are reporting associations, not clinical risk.
+
 ## Limitations (summary)
 
-- Small compound cohort (≤ ~10 canonical parents to start) limits statistical power for multivariate analyses.
-- Receptor bioactivity coverage is expected to be sparse and heterogeneous across assay types/organisms/formats
-  — this project never pools Ki/IC50/EC50/Kd as equivalent, and documents an explicit missing-data strategy
-  rather than imputing silently.
+- Small compound cohort (n=10) limits statistical power for every matrix-association and multivariate analysis.
+- Receptor bioactivity coverage is sparse and heterogeneous across assay types/organisms/formats — 7/10 cohort
+  compounds have zero measurements against any of the six receptors queried, which prevented the primary
+  analysis (H1) from running at all. Ki/IC50/EC50/Kd are never pooled as equivalent.
+- The safety-phenotype background is cohort-relative (each compound vs. the rest of the 10-compound cohort, not
+  all of FAERS); testosterone contributes 75% of total report volume, which can mechanically influence every
+  other compound's relative signal — a real methodological consideration, documented in the Discussion.
 - FAERS reporting is voluntary, subject to stimulated/publicity reporting, duplicate/follow-up reports, and has
   no reliable exposure denominator — disproportionality signals are reporting associations, not risk estimates.
 - Custom adverse-event categories used in this project (`research/ae_categories.csv`) are **research-defined**,
   not an official licensed MedDRA System Organ Class hierarchy.
+- Confounding (age, sex, indication, polypharmacy, other PED exposure, reporting bias, product provenance) is
+  not adjusted for anywhere in this project.
 
-Full discussion: `research/exclusion_rules.md`, and (once populated) `reports/research_report.md` §Limitations.
+Full discussion: `research/exclusion_rules.md` and `reports/research_report.md` §Limitations.
 
 ## License / ethical scope
 

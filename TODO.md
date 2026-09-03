@@ -48,8 +48,8 @@ drifts toward these must be stopped and flagged, not implemented.
       ["backend/tests"]`). 25 tests passing (`backend/tests/test_chemistry.py`, `test_signals.py`).
 - [x] `.env.example`, `.gitignore`, `Makefile` with stubbed pipeline targets that fail loudly with a pointer to
       the relevant phase instead of pretending to work.
-- [ ] Next.js frontend project scaffold — intentionally **not started** (Phase 14 builds the dashboard only
-      after the research pipeline produces real results).
+- [x] Next.js frontend project scaffold — deferred until Phase 14, built only after the research pipeline
+      produced real results (see Phase 14).
 - [ ] CI (GitHub Actions or similar) — not yet set up; no remote yet.
 
 ## Phase 3 — Compound registry ✅ (2026-08-27)
@@ -407,9 +407,28 @@ drifts toward these must be stopped and flagged, not implemented.
       superseded by version dedup; 31,061 reactions / 4,057 distinct terms; full per-source
       etl_runs table (read/inserted/rejected/notes); 10/110 sparse safety-phenotype cells.
 
-## Phase 14 — Dashboard (not started — explicitly last)
-- [ ] Next.js frontend: Research Overview, Compound Explorer, Safety Phenotype, Molecular vs Safety, Clustering,
-      Therapeutic vs Misuse, Methods, Limitations pages.
+## Phase 14 — Dashboard (built after the research pipeline, per plan)
+- [x] FastAPI backend API layer: `compounds`, `phenotypes`, `similarity`, `analysis`, `overview` routers,
+      Pydantic response schemas, an `artifacts` service that reads pre-computed artifacts (never recomputes),
+      CORS for `http://localhost:3000`, a 404 handler for missing artifacts. 22 API integration tests
+      (`backend/tests/test_api.py`) run against the live local DB/artifacts.
+- [x] Next.js 16 (App Router, Turbopack, TypeScript, Tailwind v4) frontend, all 8 required pages, each a
+      Server Component fetching real data server-side (no mocked/placeholder data anywhere):
+      Research Overview (`/`), Compound Explorer (`/compounds`, `/compounds/[name]`), Safety Phenotype
+      (`/safety`), Molecular vs. Safety (`/molecular-vs-safety`), Clustering (`/clustering`),
+      Therapeutic vs. Misuse (`/misuse`), Methods (`/methods`), Limitations (`/limitations`).
+- [x] Reusable Plotly chart components (Heatmap, ForestPlot, BarChart, ScatterPlot) via
+      `next/dynamic(..., { ssr: false })` + `plotly.js-dist-min` (kept out of server rendering, since Plotly
+      touches `window`/canvas at import time).
+- [x] Sec. 37 provenance labeling (`ProvenanceBadge`: OBSERVED/DERIVED/MODEL OUTPUT/INTERPRETATION;
+      `AnalysisLabelBadge`: PRIMARY/SECONDARY/EXPLORATORY) applied throughout, plus a persistent disclaimer
+      banner and footer notice that this project does not provide dosing/cycle/product-safety recommendations.
+- [x] `next build` (TypeScript + lint) passes clean across all pages; visually verified with Playwright
+      screenshots of all 9 routes against the live backend — real data rendered, zero console/page errors.
+- [x] `types/plotly.js-dist-min.d.ts`: `plotly.js-dist-min` ships no types; declared it as `object` (matching
+      `react-plotly.js`'s own `createPlotlyComponent(plotly: object)` signature) rather than pulling in the
+      full `plotly.js` namespace types, which failed to resolve under `moduleResolution: "bundler"` from
+      inside an ambient `.d.ts`.
 
 ## Phase 15 — Testing and documentation (ongoing)
 - [x] Chemistry unit tests (parsing, descriptors, InChIKey vs. known PubChem value, Tanimoto similarity,
@@ -418,7 +437,8 @@ drifts toward these must be stopped and flagged, not implemented.
 - [ ] FAERS dedup/mapping/classification tests (Phase 6).
 - [ ] Reproducibility test: same data + seed → same primary result (Phase 9).
 - [x] README, database schema doc.
-- [ ] Methods documentation page (Phase 14).
+- [x] Methods documentation page (Phase 14).
+- [x] 209 backend tests passing (`uv run pytest backend/tests`), including the 22 dashboard API tests.
 
 ---
 
