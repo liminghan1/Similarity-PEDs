@@ -228,11 +228,16 @@ and only 1 of 45 compound pairs shared any receptor target). The fully computabl
 (structural similarity alone vs. safety-reporting-profile similarity, n=10 compounds) found no
 significant association (Spearman rho=-0.293, one-sided p=0.956), a result that was stable across
 all six computable pre-specified sensitivity analyses. In contrast, a secondary comparison of
-FAERS reports classified as therapeutic-use-associated versus misuse-associated found substantial,
-statistically significant differences in seriousness, hospitalization, and adverse-event-category
-patterns. We report these findings, including the non-computable primary test and the null
-secondary result, as a complete and honest account of what this pipeline can and cannot currently
-show -- not a forced positive result."""
+FAERS reports classified as therapeutic-use-associated versus misuse-associated (using a two-tier
+classifier that never treats ambiguous exposure evidence as sufficient alone for a misuse label)
+found statistically significant differences in seriousness, hospitalization, and
+adverse-event-category patterns that survive Benjamini-Hochberg correction for multiple comparisons
+(7/11 categories) and, for all but one category, survive a sensitivity analysis controlling for
+classifier-outcome leakage between the misuse classifier and the AE-category taxonomy. We report
+these findings, including the non-computable primary test, the null secondary result, and the one
+AE-category association (psychiatric) that did not survive leakage control, as a complete and
+honest account of what this pipeline can and cannot currently show -- not a forced positive
+result."""
 
 INTRODUCTION = """## Introduction
 
@@ -310,11 +315,22 @@ distance matrix and the safety distance matrix (`research/analysis_plan.md`).
 
 **Secondary and exploratory analyses.** Independent hierarchical clustering of the structure and
 safety distance matrices (k chosen by max silhouette, k=2-5), compared via Adjusted Rand Index and
-Normalized Mutual Information. A conservative rule-based classifier (`pipelines/faers/classification.py`)
-labeled reports THERAPEUTIC, MISUSE, MULTI_AAS_EXPOSURE, or UNKNOWN from reaction terms and
-indication text, never inferring misuse from multi-drug co-reporting alone. THERAPEUTIC-vs-MISUSE
-reports were compared on seriousness/hospitalization/death and AE-category presence (Fisher's exact
-test, odds ratios + 95% CI). A penalized (Ridge) regression with leave-one-out cross-validation and
+Normalized Mutual Information. A conservative rule-based classifier (`pipelines/faers/classification.py`,
+v2) labeled reports THERAPEUTIC, MISUSE, MULTI_AAS_EXPOSURE, AMBIGUOUS_EXPOSURE, or UNKNOWN from
+reaction terms and indication text, never inferring misuse from multi-drug co-reporting alone.
+Reaction-term evidence for misuse is split into two tiers: high-confidence terms (e.g. "drug abuse,"
+"illicit drug use") are sufficient alone; ambiguous terms (e.g. "accidental overdose," "product use
+in unapproved indication" -- both have legitimate non-misuse explanations) are never sufficient
+alone and instead classify a report AMBIGUOUS_EXPOSURE, a separately-tracked, separately-reported
+outcome rather than being folded into either MISUSE or UNKNOWN. THERAPEUTIC-vs-MISUSE reports were
+compared on seriousness/hospitalization/death and AE-category presence (Fisher's exact test, odds
+ratios + 95% CI), with Benjamini-Hochberg FDR correction (q<0.05) applied across all AE-category
+tests -- research/hypotheses.md's H3 falsifiability clause requires surviving multiple-comparison
+correction, not raw p<0.05 alone. A leakage-controlled sensitivity variant additionally excludes
+every reaction term the classifier itself uses as misuse evidence from AE-category tabulation, since
+one such term ("substance abuse") is also a member of the AE-category taxonomy, which could
+otherwise let a report count toward an AE-category outcome for no reason other than the same term
+that classified it MISUSE. A penalized (Ridge) regression with leave-one-out cross-validation and
 permutation testing explored whether molecular descriptors predict each category's logROR
 (EXPLORATORY, n=10; H4 as originally specified around receptor features was infeasible for the
 same reason as H1). All 8 pre-specified sensitivity analyses (`research/analysis_plan.md` Sec. 7)
@@ -364,19 +380,44 @@ real methodological consideration for interpreting the H2 null result, not a dat
 testosterone's structural similarity to the rest of the cohort is unremarkable (Figure 5), so this
 pattern is specific to the safety-reporting axis.
 
-**H3 (secondary): therapeutic-use and misuse-associated reports differ substantially.** Unlike H1/H2,
-this comparison has real statistical power (554 misuse-classified, 450 therapeutic-classified
-reports, both far above the 20-report minimum) and found significant differences: misuse-associated
-reports show higher seriousness (OR=1.54, 95% CI 1.07-2.22, p=0.024) and hospitalization (OR=1.53,
-95% CI 1.19-1.96, p<0.001) proportions, but **not** significantly higher death proportion (OR=1.01,
-p=1.0) -- a genuine, non-uniform finding rather than "misuse is worse across the board." AE-category
-differences were substantial: reproductive (OR=7.67), dermatologic (OR=6.23), hepatic (OR=2.34),
-and cardiovascular (OR=1.94) categories were all significantly elevated in misuse-associated
-reports, while thrombotic events were significantly *lower* (OR=0.43) -- plausibly reflecting that
-therapeutic-use populations (predominantly older testosterone-TRT patients) carry more baseline
-cardiovascular/thrombotic risk factors than misuse-associated populations (see Phase 10 discussion,
-`TODO.md`), an alternative explanation that this cross-sectional reporting-association design
-cannot distinguish from a true effect of use pattern.
+**H3 (secondary): therapeutic-use and misuse-associated reports differ substantially, including
+after multiple-comparison correction.** Unlike H1/H2, this comparison has real statistical power
+(429 misuse-classified, 450 therapeutic-classified reports under the v2 classifier -- see below --
+both far above the 20-report minimum) and found significant differences: misuse-associated reports
+show higher seriousness (OR=2.14, 95% CI 1.40-3.29, p<0.001) and hospitalization (OR=1.66, 95% CI
+1.27-2.16, p<0.001) proportions, but **not** significantly higher death proportion (OR=1.09, 95%
+CI 0.78-1.53, p=0.667) -- a genuine, non-uniform finding rather than "misuse is worse across the
+board." Of 11 AE categories tested, 7 (raw p<0.05) remained significant after Benjamini-Hochberg
+FDR correction: reproductive (OR=9.32), dermatologic (OR=7.00), hepatic (OR=2.26), cardiovascular
+(OR=2.42), psychiatric (OR=1.96), and renal (OR=1.82) categories were all significantly elevated in
+misuse-associated reports, while thrombotic events were significantly *lower* (OR=0.40) --
+plausibly reflecting that therapeutic-use populations (predominantly older testosterone-TRT
+patients) carry more baseline cardiovascular/thrombotic risk factors than misuse-associated
+populations (see Phase 10 discussion, `TODO.md`), an alternative explanation that this
+cross-sectional reporting-association design cannot distinguish from a true effect of use pattern.
+
+**Two methodological corrections materially changed this result from an earlier analysis pass, and
+are documented here rather than silently folded in.** First, the original classifier (v1) treated
+every misuse-suggestive reaction term as equally strong evidence, including terms with legitimate
+non-misuse explanations ("accidental overdose," "product use in unapproved indication" -- off-label
+prescribing is legitimate clinical practice). The v2 classifier (`pipelines/faers/classification.py`)
+splits evidence into high-confidence terms (sufficient alone) and ambiguous terms (never sufficient
+alone), moving 125 reports (22.6% of the original 554) out of MISUSE -- 100 into a new, separately
+reported AMBIGUOUS_EXPOSURE bucket and 25 into MULTI_AAS_EXPOSURE. The resulting smaller, more
+conservative MISUSE group shows *stronger*, not weaker, associations for every seriousness outcome
+(e.g. serious OR 1.54->2.14), consistent with the stricter rule removing classification noise rather
+than removing signal. Second, one high-confidence misuse term, "substance abuse," is *also* a
+"psychiatric" entry in `research/ae_categories.csv` -- a report could count toward the psychiatric
+AE-category outcome for no reason other than the same term that classified it MISUSE in the first
+place. A leakage-controlled sensitivity variant (excluding every classifier-evidence term from
+AE-category tabulation) finds 6/11 categories FDR-significant instead of 7/11: **psychiatric's
+significance (uncontrolled p=0.013) is entirely attributable to this leakage** (leakage-controlled
+p=0.320, not remotely significant), while the other six FDR-significant categories are unaffected
+(reproductive, cardiovascular, thrombotic, hepatic, dermatologic, and renal all remain significant
+with near-identical p-values in both variants). This is exactly the kind of finding a leakage-control
+sensitivity analysis exists to catch, and it materially changes which specific AE-category claims
+this report is willing to make -- the psychiatric-category association is not reported as a finding;
+the other six are.
 
 **Structural clustering did recover chemically sensible groups**, independent of the safety-side
 null finding: the three 17-alpha-alkylated oral compounds in this cohort (oxandrolone, oxymetholone,
@@ -425,6 +466,17 @@ by population (age/health-status differences between clinical TRT patients and r
 users) -- the odds ratios reported describe reporting-pattern differences between these two report
 strata, not a controlled estimate of the causal effect of misuse itself.
 
+**The misuse classifier is a first-pass rule set, and even the v2 two-tier redesign has real,
+acknowledged edges.** 100 reports (18% of the original v1 MISUSE group) now fall into
+AMBIGUOUS_EXPOSURE rather than MISUSE or THERAPEUTIC, and are excluded from the H3 comparison
+entirely -- some of these are almost certainly genuine misuse under-counted by the stricter rule,
+and the true trade-off between the v1 (more sensitive, less specific) and v2 (less sensitive, more
+specific) classifiers cannot be resolved without manually-adjudicated ground truth, which this
+project does not have. Separately, the leakage-controlled sensitivity analysis only controls for
+*exact reaction-term* overlap between the classifier and the AE-category taxonomy (one term,
+"substance abuse") -- it cannot detect or control for subtler correlations between what gets a
+report classified MISUSE and what gets it counted in a given AE category.
+
 **Research-defined AE categories are not an official MedDRA hierarchy.** The 11-category taxonomy
 in `research/ae_categories.csv` is a curated, documented, but non-licensed grouping; category-level
 findings should not be presented as standardized MedDRA System Organ Class results.
@@ -450,11 +502,14 @@ be run due to real, documented receptor-bioactivity data sparsity -- an honest n
 finding, not a null scientific result. The fully computable structural-similarity test (H2) found no
 significant association, a finding that was stable across every sensitivity analysis that could be
 run. In contrast, therapeutic-use-versus-misuse reporting phenotypes differ substantially and
-significantly (H3), and structural clustering independently recovered chemically sensible compound
-groups, together indicating this pipeline is capturing real signal where the underlying data support
-it, rather than producing noise throughout. Claims are held proportional to the evidence: this
-report neither forces a positive structure-to-safety association nor discards the substantive
-misuse-vs-therapeutic finding for the sake of a tidier narrative."""
+significantly (H3) after both multiple-comparison correction and a classifier-outcome-leakage
+control -- and structural clustering independently recovered chemically sensible compound groups --
+together indicating this pipeline is capturing real signal where the underlying data support it,
+rather than producing noise throughout. Claims are held proportional to the evidence: this report
+neither forces a positive structure-to-safety association nor discards the substantive
+misuse-vs-therapeutic finding, and it withdraws the one specific AE-category claim (psychiatric)
+that a leakage-control sensitivity analysis showed was a methodological artifact rather than a
+real difference -- for the sake of a tidier narrative, none of these were suppressed or softened."""
 
 
 def render_research_report_md(dq: dict, results: dict) -> str:
@@ -474,8 +529,12 @@ def render_research_report_md(dq: dict, results: dict) -> str:
     n_sensitivity_computable = sum(1 for v in sensitivity.values() if v.get("computable"))
     n_sensitivity_total = len(sensitivity)
 
-    n_sig_categories = int((results["ae_category_comparison"]["fisher_p_value"] < 0.05).sum())
+    n_sig_categories_raw = int((results["ae_category_comparison"]["fisher_p_value"] < 0.05).sum())
+    n_sig_categories = int(results["ae_category_comparison"]["significant_fdr_05"].sum())
     n_categories_total = len(results["ae_category_comparison"])
+    n_sig_categories_leakage = int(
+        pd.DataFrame(misuse["ae_category_comparison_leakage_controlled"])["significant_fdr_05"].sum()
+    )
 
     n_sig_multivariate = sum(
         1 for r in multivariate["results"] if r.get("p_value") is not None and r["p_value"] < 0.05
@@ -490,6 +549,8 @@ def render_research_report_md(dq: dict, results: dict) -> str:
     n_misuse = misuse["group_sizes"].get("misuse", 0)
     n_therapeutic = misuse["group_sizes"].get("therapeutic", 0)
     strata_ok = "yes" if misuse.get("strata_meet_minimum_20_reports") else "no"
+    full_dist = misuse.get("full_classification_distribution", {})
+    full_dist_str = ", ".join(f"{v} {k}" for k, v in sorted(full_dist.items(), key=lambda kv: -kv[1]))
 
     results_section = f"""## Results
 
@@ -516,7 +577,7 @@ Structure clustering: k={clustering['structure_clustering']['k']} (cophenetic r=
 
 ### Therapeutic vs. misuse comparison (SECONDARY, H3)
 
-Group sizes: **{n_misuse}** misuse-classified reports, **{n_therapeutic}** therapeutic-classified reports (both strata meet the 20-report minimum: {strata_ok}).
+Group sizes: **{n_misuse}** misuse-classified reports, **{n_therapeutic}** therapeutic-classified reports (both strata meet the 20-report minimum: {strata_ok}). Full classifier v{misuse.get('classifier_version', '?').lstrip('v')} distribution across all {sum(full_dist.values())} deduplicated reports: {full_dist_str}.
 
 | Outcome | Misuse | Therapeutic | Odds Ratio [95% CI] | Fisher p |
 |---|---|---|---|---|
@@ -528,8 +589,15 @@ Group sizes: **{n_misuse}** misuse-classified reports, **{n_therapeutic}** thera
             f"{o['odds_ratio']:.2f} [{o['ci_low']:.2f}, {o['ci_high']:.2f}] | {_fmt_p(o['fisher_p_value'])} |\n"
         )
 
+    same_categories_note = (
+        " (the same categories in both cases here -- correction did not flip any borderline result, "
+        "though it changes the q-values reported per category and is not guaranteed to agree with the "
+        "raw count in general)"
+        if n_sig_categories_raw == n_sig_categories
+        else ""
+    )
     results_section += f"""
-**{n_sig_categories}/{n_categories_total}** research-defined AE categories showed a statistically significant (Fisher p<0.05) difference between misuse- and therapeutic-associated reports (Figure 9; full table in `artifacts/matrices/misuse_vs_therapeutic_ae_categories.csv`).
+**{n_sig_categories_raw}/{n_categories_total}** research-defined AE categories showed a raw Fisher p<0.05 difference between misuse- and therapeutic-associated reports; **{n_sig_categories}/{n_categories_total}** remain significant after Benjamini-Hochberg FDR correction across all {n_categories_total} category tests (q<0.05){same_categories_note} -- research/hypotheses.md's H3 falsifiability clause requires surviving multiple-comparison correction, not raw p<0.05 alone, so the FDR-corrected count is the one that speaks to H3 support (Figure 9; full table in `artifacts/matrices/misuse_vs_therapeutic_ae_categories.csv`). A leakage-controlled sensitivity variant -- excluding every reaction term the classifier itself uses as misuse evidence from AE-category membership, since one such term ("substance abuse") is also a "psychiatric" category entry -- finds **{n_sig_categories_leakage}/{n_categories_total}** categories FDR-significant (`artifacts/matrices/misuse_vs_therapeutic_ae_categories_leakage_controlled.csv`); see Discussion for which category's significance depended on this leakage.
 
 ### Multivariate association (EXPLORATORY, H4, molecular descriptors)
 

@@ -130,20 +130,43 @@ far less sparse than ChEMBL/BindingDB coverage -- worth noting directly in the r
 discussion of representation asymmetry between Aim 1 (molecular/pharmacological) and Aim 2
 (safety) data availability.
 
-Report-level classification distribution: 6,099 unknown, 554 misuse, 450 therapeutic, 332
-multi-AAS exposure. Per-compound patterns are consistent with known pharmacology and worth
-noting: trenbolone and drostanolone (never approved for human therapeutic use) show heavy
-misuse-classification skew and near-zero therapeutic classifications, while testosterone (the
-only cohort compound in wide legitimate clinical use) has the largest absolute THERAPEUTIC count
-(445) alongside its large MISUSE count (539) -- both a real reporting-volume effect (testosterone
-dominates the cohort's total report count) and consistent with its dual legitimate/misuse profile
-described in the literature (`research/literature_review.md`).
+Report-level classification distribution (v1 classifier, first live run): 6,099 unknown, 554
+misuse, 450 therapeutic, 332 multi-AAS exposure. Per-compound patterns are consistent with known
+pharmacology and worth noting: trenbolone and drostanolone (never approved for human therapeutic
+use) show heavy misuse-classification skew and near-zero therapeutic classifications, while
+testosterone (the only cohort compound in wide legitimate clinical use) has the largest absolute
+THERAPEUTIC count (445) alongside its large MISUSE count (539) -- both a real reporting-volume
+effect (testosterone dominates the cohort's total report count) and consistent with its dual
+legitimate/misuse profile described in the literature (`research/literature_review.md`).
 
-## Classifier term list: first-pass status
+## Classifier term list: v1 -> v2 (2026-09-04)
 
-`pipelines/faers/classification.py`'s `MISUSE_EVIDENCE_REACTION_TERMS` and
-`THERAPEUTIC_INDICATION_TERMS` are a first-pass curated list (`CLASSIFIER_VERSION = "v1"`). The
-live run's actual reaction/indication term distribution (see `etl_runs.notes` and
-`reports/data_quality.md` once generated) should be reviewed to check whether additional real,
-recurring terms belong on either list -- exactly the same discovery process that surfaced
-"Methane" above.
+`pipelines/faers/classification.py`'s v1 `MISUSE_EVIDENCE_REACTION_TERMS` treated every
+misuse-suggestive reaction term as equally strong, sufficient-alone evidence -- including terms
+that don't actually imply *intentional* non-medical use ("accidental overdose" is by definition
+not intentional; "product use in unapproved indication" describes legitimate off-label
+prescribing). v2 splits this into `HIGH_CONFIDENCE_MISUSE_TERMS` (sufficient alone) and
+`AMBIGUOUS_EXPOSURE_TERMS` (never sufficient alone -- see the new `UseClassification.AMBIGUOUS_EXPOSURE`
+outcome, tracked and reported separately rather than silently folded into MISUSE or UNKNOWN). This
+also matters for the H3 AE-category comparison (`analysis/misuse_analysis.py`): "substance abuse"
+is both a high-confidence misuse term *and* a `research/ae_categories.csv` "psychiatric" entry, a
+source of classifier-outcome leakage that module's new leakage-controlled sensitivity variant
+detects and controls for.
+
+Re-classifying the same, already-ingested 7,433 reports with v2 (`uv run python -m
+pipelines.faers.reclassify` -- no re-fetch from openFDA needed) changed the distribution to:
+6,097 unknown, 450 therapeutic, **429** misuse, 357 multi-AAS exposure, **100** ambiguous exposure
+(new). 125 reports (22.6% of v1's 554 MISUSE) moved out of MISUSE: 100 to AMBIGUOUS_EXPOSURE, 25 to
+MULTI_AAS_EXPOSURE (reports with an ambiguous-tier term plus a second cohort compound co-reported,
+which now resolves to MULTI_AAS_EXPOSURE rather than MISUSE). The resulting smaller MISUSE group
+shows *stronger* seriousness/hospitalization associations in the H3 comparison than v1's larger,
+noisier group did -- see `reports/research_report.md` Discussion and
+`research/analysis_plan.md`'s Deviations table for the full before/after comparison.
+
+## Classifier term list: known remaining first-pass status
+
+The term lists (both tiers) and `THERAPEUTIC_INDICATION_TERMS` remain a first-pass curated list,
+not a database-verified MedDRA extract. The live run's actual reaction/indication term
+distribution (see `etl_runs.notes` and `reports/data_quality.md`) should be reviewed periodically
+to check whether additional real, recurring terms belong on any list -- exactly the same discovery
+process that surfaced "Methane" above.

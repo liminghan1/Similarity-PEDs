@@ -72,6 +72,20 @@ export default async function LimitationsPage() {
         of the causal effect of misuse itself.
       </Card>
 
+      <Card title="The misuse classifier is a first-pass rule set, even after its two-tier redesign">
+        <p className="text-sm text-slate-700">
+          100 reports (18% of the earlier, less conservative classifier&apos;s MISUSE group) now fall
+          into a separately-tracked AMBIGUOUS_EXPOSURE outcome and are excluded from the H3
+          comparison entirely -- some are almost certainly genuine misuse under-counted by the
+          stricter rule, and the true sensitivity/specificity trade-off cannot be resolved without
+          manually-adjudicated ground truth, which this project does not have. Separately, the
+          leakage-controlled sensitivity analysis (see Therapeutic vs. Misuse) only controls for
+          exact reaction-term overlap between the classifier and the AE-category taxonomy (one
+          term, &quot;substance abuse&quot;) -- it cannot detect or control for subtler correlations between
+          what gets a report classified MISUSE and what gets it counted in a given AE category.
+        </p>
+      </Card>
+
       <Card title="Research-defined AE categories are not an official MedDRA hierarchy">
         The 11-category taxonomy used throughout this project is a curated, documented, but
         non-licensed grouping of reaction terms. Category-level findings should not be presented as

@@ -130,10 +130,18 @@ export default function MethodsPage() {
           </li>
           <li>
             <strong>Therapeutic vs. misuse (H3):</strong> a conservative rule-based classifier
-            labeled each report THERAPEUTIC, MISUSE, MULTI_AAS_EXPOSURE, or UNKNOWN from reaction
-            terms and indication text -- misuse was never inferred from multi-drug co-reporting
-            alone. THERAPEUTIC-vs-MISUSE reports were compared on seriousness/hospitalization/death
-            and on AE-category presence via Fisher&apos;s exact test (odds ratios with 95% CI).
+            (v2) labeled each report THERAPEUTIC, MISUSE, MULTI_AAS_EXPOSURE, AMBIGUOUS_EXPOSURE,
+            or UNKNOWN from reaction terms and indication text -- misuse was never inferred from
+            multi-drug co-reporting alone, and misuse evidence is split into a high-confidence
+            tier (sufficient alone) and an ambiguous tier (e.g. &quot;accidental overdose,&quot; &quot;product
+            use in unapproved indication&quot; -- both have legitimate non-misuse explanations, so
+            neither is sufficient alone; a report with only ambiguous evidence is classified
+            AMBIGUOUS_EXPOSURE, not MISUSE). THERAPEUTIC-vs-MISUSE reports were compared on
+            seriousness/hospitalization/death and on AE-category presence via Fisher&apos;s exact
+            test (odds ratios with 95% CI), with Benjamini-Hochberg FDR correction (q&lt;0.05)
+            applied across all AE-category tests and a leakage-controlled sensitivity variant
+            (excluding every classifier-evidence reaction term from AE-category counting, since
+            &quot;substance abuse&quot; is both misuse evidence and a category-taxonomy entry).
           </li>
           <li>
             <strong>Multivariate/H4 (exploratory):</strong> a penalized (Ridge) regression with

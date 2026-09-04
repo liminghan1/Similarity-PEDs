@@ -11,11 +11,26 @@ cohort compounds co-reported ("multi-AAS exposure") is tracked as its own catego
 counts as *contributing* evidence toward MISUSE when combined with at least one independent
 qualifying evidence type.
 
-The term lists below (`MISUSE_EVIDENCE_REACTION_TERMS`, `THERAPEUTIC_INDICATION_TERMS`) are a
-first-pass curated list, not a database-verified MedDRA extract -- version-stamped via
-`CLASSIFIER_VERSION` and documented in pipelines/faers/README.md as requiring validation against
-the terms actually observed once real FAERS data was ingested (which happened for this project;
-see that README for what was actually found and whether the list needed adjustment).
+**v2 (this version): two-tier misuse evidence, not one flat list.** v1 treated every term in a
+single `MISUSE_EVIDENCE_REACTION_TERMS` set as equally strong evidence, including terms that
+don't actually imply intentional non-medical use: "accidental overdose" is, by definition, not
+intentional; "overdose" alone doesn't say whether it was intentional or a dosing error; "product
+use in unapproved indication" describes off-label use, which is legitimate and common in clinical
+practice, not inherently misuse. Treating these the same as an explicit "drug abuse" reaction
+term risked classifying reports as MISUSE on weak grounds. v2 splits the evidence into
+`HIGH_CONFIDENCE_MISUSE_TERMS` (sufficient on their own) and `AMBIGUOUS_EXPOSURE_TERMS`
+(suggestive but never sufficient alone -- see `UseClassification.AMBIGUOUS_EXPOSURE`, a new,
+separately-tracked outcome for reports whose only positive evidence is ambiguous). This also
+matters for H3 (misuse vs. therapeutic AE-category comparison, analysis/misuse_analysis.py): one
+high-confidence term, "substance abuse", is *also* a member of the psychiatric AE-category
+taxonomy (research/ae_categories.csv), which is a source of classifier-outcome leakage the
+misuse_analysis leakage-controlled sensitivity variant is designed to detect and control for.
+
+The term lists below (`HIGH_CONFIDENCE_MISUSE_TERMS`, `AMBIGUOUS_EXPOSURE_TERMS`,
+`THERAPEUTIC_INDICATION_TERMS`) are a first-pass curated list, not a database-verified MedDRA
+extract -- version-stamped via `CLASSIFIER_VERSION` and documented in pipelines/faers/README.md as
+requiring validation against the terms actually observed once real FAERS data was ingested (which
+happened for this project; see that README for what was actually found).
 """
 
 from __future__ import annotations
@@ -24,23 +39,36 @@ from dataclasses import dataclass, field
 
 from backend.app.models.faers import UseClassification
 
-CLASSIFIER_VERSION = "v1"
+CLASSIFIER_VERSION = "v2"
 
-# Reaction (patient.reaction[].reactionmeddrapt) terms treated as direct evidence of misuse,
-# intentional/product-use-error, or supratherapeutic exposure (exclusion_rules.md Sec. 6).
-MISUSE_EVIDENCE_REACTION_TERMS: frozenset[str] = frozenset({
+# Reaction (patient.reaction[].reactionmeddrapt) terms treated as sufficient, standalone evidence
+# of intentional misuse or non-medical use (exclusion_rules.md Sec. 6). Any one of these present
+# is enough to classify MISUSE (subject to the precedence rules in classify_report below).
+HIGH_CONFIDENCE_MISUSE_TERMS: frozenset[str] = frozenset({
     "DRUG ABUSE",
     "DRUG ABUSER",
     "SUBSTANCE ABUSE",
     "INTENTIONAL PRODUCT MISUSE",
-    "INTENTIONAL PRODUCT USE ISSUE",
     "INTENTIONAL OVERDOSE",
-    "ACCIDENTAL OVERDOSE",
-    "OVERDOSE",
     "PRESCRIPTION DRUG USED WITHOUT PRESCRIPTION",
     "ILLICIT DRUG USE",
+})
+
+# Reaction terms that are *consistent with* misuse/non-medical use but do not, on their own,
+# distinguish it from a legitimate clinical scenario (accidental dosing error, off-label
+# prescribing). Never sufficient alone to classify MISUSE -- see UseClassification.AMBIGUOUS_EXPOSURE.
+AMBIGUOUS_EXPOSURE_TERMS: frozenset[str] = frozenset({
+    "INTENTIONAL PRODUCT USE ISSUE",
+    "ACCIDENTAL OVERDOSE",
+    "OVERDOSE",
     "PRODUCT USE IN UNAPPROVED INDICATION",
 })
+
+# Union of both tiers -- every reaction term this classifier ever treats as misuse-relevant
+# evidence of either kind. Exists so callers (analysis/misuse_analysis.py's leakage-controlled
+# sensitivity variant) can exclude the full set from AE-category tabulation without importing
+# both tier constants and re-deriving the union themselves.
+ALL_MISUSE_EVIDENCE_TERMS: frozenset[str] = HIGH_CONFIDENCE_MISUSE_TERMS | AMBIGUOUS_EXPOSURE_TERMS
 
 # Raw patient.drug[].drugindication text (substring, normalized) treated as evidence of a
 # legitimate therapeutic indication for this compound class.
@@ -83,7 +111,7 @@ class ClassificationResult:
     use_classification: UseClassification
     confidence: float
     evidence: list[dict] = field(default_factory=list)
-    method: str = "rule_based_v1"
+    method: str = "rule_based_v2"
     classifier_version: str = CLASSIFIER_VERSION
 
 
@@ -91,9 +119,12 @@ def classify_report(matched_drugs: list[MatchedDrug], reaction_terms: list[str])
     evidence: list[EvidenceItem] = []
 
     normalized_reactions = {t.strip().upper() for t in reaction_terms if t}
-    misuse_terms_found = normalized_reactions & MISUSE_EVIDENCE_REACTION_TERMS
-    for term in sorted(misuse_terms_found):
-        evidence.append(EvidenceItem("misuse_reaction_term", term))
+    high_confidence_found = normalized_reactions & HIGH_CONFIDENCE_MISUSE_TERMS
+    ambiguous_found = normalized_reactions & AMBIGUOUS_EXPOSURE_TERMS
+    for term in sorted(high_confidence_found):
+        evidence.append(EvidenceItem("misuse_reaction_term_high_confidence", term))
+    for term in sorted(ambiguous_found):
+        evidence.append(EvidenceItem("misuse_reaction_term_ambiguous", term))
 
     distinct_compounds = {d.compound_id for d in matched_drugs}
     multi_aas = len(distinct_compounds) >= 2
@@ -114,10 +145,11 @@ def classify_report(matched_drugs: list[MatchedDrug], reaction_terms: list[str])
                 break
 
     # --- Decision rule (precedence order; see module docstring) ---
-    if misuse_terms_found:
-        # Multi-AAS alone never triggers MISUSE; it only contributes once an independent
-        # qualifying signal (a real misuse reaction term) is already present.
-        n_independent = len(misuse_terms_found) + (1 if multi_aas else 0)
+    if high_confidence_found:
+        # Multi-AAS and ambiguous-tier terms alone never trigger MISUSE; both only contribute
+        # once an independent, sufficient signal (a high-confidence misuse reaction term) is
+        # already present.
+        n_independent = len(high_confidence_found) + len(ambiguous_found) + (1 if multi_aas else 0)
         confidence = min(0.95, 0.55 + 0.15 * n_independent)
         return ClassificationResult(
             UseClassification.MISUSE, confidence, [e.__dict__ for e in evidence]
@@ -127,6 +159,16 @@ def classify_report(matched_drugs: list[MatchedDrug], reaction_terms: list[str])
         confidence = min(0.9, 0.5 + 0.1 * len(distinct_compounds))
         return ClassificationResult(
             UseClassification.MULTI_AAS_EXPOSURE, confidence, [e.__dict__ for e in evidence]
+        )
+
+    if ambiguous_found:
+        # Ambiguous-only: real positive evidence, but not sufficient to call it misuse (see
+        # module docstring -- e.g. "accidental overdose" or "product use in unapproved
+        # indication" have legitimate, non-misuse explanations). Tracked as its own outcome
+        # rather than folded into UNKNOWN, so it stays visible and auditable rather than lost.
+        confidence = min(0.6, 0.3 + 0.1 * len(ambiguous_found))
+        return ClassificationResult(
+            UseClassification.AMBIGUOUS_EXPOSURE, confidence, [e.__dict__ for e in evidence]
         )
 
     if therapeutic_terms_found:

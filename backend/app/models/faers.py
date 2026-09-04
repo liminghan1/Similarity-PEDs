@@ -37,6 +37,12 @@ class UseClassification(str, enum.Enum):
     THERAPEUTIC = "therapeutic"
     MISUSE = "misuse"
     MULTI_AAS_EXPOSURE = "multi_aas_exposure"
+    # v2 classifier (pipelines/faers/classification.py): reports whose only positive evidence is
+    # an "ambiguous" reaction term (e.g. "accidental overdose", "product use in unapproved
+    # indication") that is consistent with misuse but has a legitimate non-misuse explanation too,
+    # and so is not on its own sufficient to classify MISUSE. Tracked separately rather than
+    # folded into UNKNOWN so this real, non-trivial evidence stays visible and auditable.
+    AMBIGUOUS_EXPOSURE = "ambiguous_exposure"
     UNKNOWN = "unknown"
 
 

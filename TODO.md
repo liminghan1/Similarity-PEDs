@@ -460,6 +460,64 @@ drifts toward these must be stopped and flagged, not implemented.
 - [x] 216 backend tests passing (`uv run pytest backend/tests`), including the 22 dashboard API
       tests, the 4 dedup tests, and the 3 reproducibility tests added in this pass.
 
+## Post-launch methodological rigor pass (2026-09-04) — external review, H3
+
+External review identified three real issues in the H3 (therapeutic vs. misuse) analysis, logged
+in full in `research/analysis_plan.md`'s Deviations table (this is a post-hoc, after-results
+correction, documented as such, not silently folded in):
+
+- [x] **Multiple-comparison correction was pre-specified but never implemented.**
+      `research/hypotheses.md`'s H3 falsifiability clause already required "correcting for
+      multiple comparisons," but `analysis/misuse_analysis.py` only ever computed raw Fisher
+      p-values, and the research report's "7/11 categories significant" claim was based on raw
+      p<0.05 alone. Fixed: `compare_ae_categories` now runs Benjamini-Hochberg FDR correction
+      (`statsmodels.stats.multitest.multipletests`, q<0.05) across all 11 category tests and
+      reports `fdr_q_value`/`significant_fdr_05` per category alongside the raw p-value. Covered
+      by `backend/tests/test_misuse_analysis.py::TestCompareAeCategoriesFdrCorrection`, including
+      a concrete fixture where FDR correction actually overturns a raw-significant result.
+- [x] **Classifier-outcome leakage.** The v1 misuse classifier's `MISUSE_EVIDENCE_REACTION_TERMS`
+      treated every misuse-suggestive reaction term as equally sufficient evidence, including
+      terms with legitimate non-misuse explanations ("accidental overdose," "product use in
+      unapproved indication" -- off-label prescribing is legitimate). Separately, one such term,
+      "substance abuse," is *also* a `research/ae_categories.csv` "psychiatric" entry -- a report
+      could count toward the psychiatric AE-category outcome for no reason other than the same
+      term that classified it MISUSE. Fixed with two changes:
+      1. **Classifier redesign (v1 -> v2, `pipelines/faers/classification.py`)**: misuse evidence
+         is now split into `HIGH_CONFIDENCE_MISUSE_TERMS` (sufficient alone) and
+         `AMBIGUOUS_EXPOSURE_TERMS` (never sufficient alone). A new `UseClassification.AMBIGUOUS_EXPOSURE`
+         outcome (Alembic migration `5034b0e2a74d`, `ALTER TYPE ... ADD VALUE`) tracks
+         ambiguous-only reports separately rather than folding them into MISUSE or UNKNOWN. A new
+         standalone `pipelines/faers/reclassify.py` re-applies the classifier to all 7,433
+         already-persisted reports using data already in the DB (no openFDA re-fetch needed,
+         since `persist_report` never overwrites an existing classification). **Real result**:
+         554 -> 429 MISUSE (125 reports, 22.6%, moved to the new AMBIGUOUS_EXPOSURE (100) or
+         MULTI_AAS_EXPOSURE (25) buckets); the smaller, more conservative MISUSE group shows
+         *stronger* seriousness (OR 1.54->2.14) and hospitalization (OR 1.53->1.66) associations,
+         not weaker -- consistent with the stricter rule removing noise, not signal.
+      2. **Leakage-controlled sensitivity variant** (`analysis/misuse_analysis.py`): a new
+         `load_report_categories(..., exclude_terms=...)` parameter excludes every
+         classifier-evidence reaction term from AE-category tabulation. **Real result**: 7/11
+         categories FDR-significant in the primary comparison -> 6/11 in the leakage-controlled
+         variant; the psychiatric category's significance (raw p=0.013) is shown to be entirely
+         attributable to the "substance abuse" leakage (leakage-controlled p=0.320) and is
+         withdrawn from the report's findings, while the other 6 significant categories
+         (reproductive, cardiovascular, thrombotic, hepatic, dermatologic, renal) are unaffected.
+      Covered by `backend/tests/test_faers_classification.py::TestAmbiguousExposure` and
+      `backend/tests/test_misuse_analysis.py::TestLoadReportCategoriesExcludeTerms`.
+- [x] `reports/research_report.md` (Abstract, Methods, Results, Discussion, Limitations,
+      Conclusion) and `reports/data_quality.md` regenerated (`make report`) to describe the v2
+      classifier, FDR correction, and leakage-control sensitivity, and to replace every stale v1
+      number (554 misuse, old ORs, raw-p-only significance counts) with the corrected v2 numbers
+      -- the v1 numbers are still shown for comparison in the Discussion's explanation of the
+      correction, not deleted.
+- [x] Dashboard updated to match: `frontend/components/charts/ForestPlot.tsx` now colors
+      significance from an explicit `significant` prop (FDR-based) instead of always deriving it
+      from raw `pValue<0.05`; `/misuse` page adds a leakage-controlled sensitivity comparison
+      table (highlighting the psychiatric flip) and the full classification distribution
+      including the new `ambiguous_exposure` bucket; `/methods` and `/limitations` pages updated
+      to describe the v2 classifier and its known remaining edges.
+- [x] 244 backend tests passing after this pass (up from 216).
+
 ---
 
 ## Known deviations / notes for future reference

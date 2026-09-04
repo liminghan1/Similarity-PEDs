@@ -8,13 +8,20 @@ export interface ForestPlotRow {
   ciLow: number;
   ciHigh: number;
   pValue: number;
+  /** Overrides the default `pValue < 0.05` red/gray split -- pass this whenever a corrected
+   * significance flag (e.g. FDR q<0.05) is available, so the plot never highlights a result on
+   * an uncorrected p-value alone. */
+  significant?: boolean;
+  /** Corrected p-value (e.g. FDR q-value), shown alongside the raw p-value on hover when given. */
+  qValue?: number;
 }
 
 /** Odds-ratio forest plot on a log x-axis, matching Figure 9's convention (project brief Sec. 22:
- * report effect sizes + CI, not p-values alone). Points with p<0.05 are highlighted. */
+ * report effect sizes + CI, not p-values alone). Points are highlighted red using `significant`
+ * when provided, else raw `pValue < 0.05`. */
 export function ForestPlot({ rows, height = 420 }: { rows: ForestPlotRow[]; height?: number }) {
   const sorted = [...rows].sort((a, b) => a.oddsRatio - b.oddsRatio);
-  const colors = sorted.map((r) => (r.pValue < 0.05 ? "#b91c1c" : "#64748b"));
+  const colors = sorted.map((r) => ((r.significant ?? r.pValue < 0.05) ? "#b91c1c" : "#64748b"));
 
   return (
     <div style={{ height }}>
@@ -33,7 +40,11 @@ export function ForestPlot({ rows, height = 420 }: { rows: ForestPlotRow[]; heig
               color: "#94a3b8",
             },
             marker: { color: colors, size: 10 },
-            text: sorted.map((r) => `OR=${r.oddsRatio.toFixed(2)}, p=${r.pValue.toFixed(4)}`),
+            text: sorted.map((r) =>
+              r.qValue !== undefined
+                ? `OR=${r.oddsRatio.toFixed(2)}, p=${r.pValue.toFixed(4)}, FDR q=${r.qValue.toFixed(4)}`
+                : `OR=${r.oddsRatio.toFixed(2)}, p=${r.pValue.toFixed(4)}`,
+            ),
             hoverinfo: "text+y",
           },
         ]}

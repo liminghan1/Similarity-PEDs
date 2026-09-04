@@ -149,10 +149,15 @@ export interface SeriousnessOutcome {
 
 export interface MisuseAnalysisResults {
   label: string;
+  classifier_version: string;
   group_sizes: Record<string, number>;
+  full_classification_distribution: Record<string, number>;
   strata_meet_minimum_20_reports: boolean;
   seriousness_outcomes: SeriousnessOutcome[];
   ae_category_comparison: AeCategoryComparisonRow[];
+  ae_category_comparison_multiple_comparison_note: string;
+  ae_category_comparison_leakage_controlled: AeCategoryComparisonRow[];
+  ae_category_comparison_leakage_controlled_note: string;
   demographics: {
     age: {
       misuse_n_with_age: number;
@@ -179,6 +184,8 @@ export interface AeCategoryComparisonRow {
   ci_low: number;
   ci_high: number;
   fisher_p_value: number;
+  fdr_q_value: number;
+  significant_fdr_05: boolean;
 }
 
 export interface MultivariateCategoryResult {

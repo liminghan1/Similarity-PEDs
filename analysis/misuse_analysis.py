@@ -31,12 +31,14 @@ from pathlib import Path
 
 import pandas as pd
 from scipy.stats import fisher_exact, mannwhitneyu
+from statsmodels.stats.multitest import multipletests
 
 from analysis.phenotype_matrix import load_ae_category_map
 from backend.app.analytics.signals import compute_ror
 from backend.app.db.session import SessionLocal
 from backend.app.models import FaersDrug, FaersReaction, FaersReport, ReportClassification
 from backend.app.models.faers import UseClassification
+from pipelines.faers.classification import ALL_MISUSE_EVIDENCE_TERMS, CLASSIFIER_VERSION
 
 ARTIFACTS_DIR = Path("artifacts/matrices")
 COMPARISON_GROUPS = (UseClassification.THERAPEUTIC, UseClassification.MISUSE)
@@ -81,11 +83,24 @@ def load_group_report_table(db) -> pd.DataFrame:
     return df
 
 
-def load_report_categories(db, category_map: dict[str, set[str]]) -> pd.DataFrame:
+def load_report_categories(
+    db, category_map: dict[str, set[str]], *, exclude_terms: frozenset[str] = frozenset()
+) -> pd.DataFrame:
+    """One row per (report, category) a reaction term maps to.
+
+    `exclude_terms` (upper-cased meddra terms) is used by the leakage-controlled sensitivity
+    variant below: any reaction term that itself supplied evidence to the therapeutic/misuse
+    classifier (pipelines/faers/classification.py) is excluded from category membership here, so
+    a report cannot count toward an AE-category outcome purely because the same term that got it
+    labeled MISUSE also happens to sit in the AE-category taxonomy (e.g. "substance abuse" is
+    both a MISUSE classification term and a research/ae_categories.csv "psychiatric" entry)."""
     rows = db.query(FaersReaction.report_id, FaersReaction.meddra_term).all()
     pairs = set()
     for report_id, term in rows:
-        for category in category_map.get(term.strip().lower(), ()):
+        normalized = term.strip()
+        if normalized.upper() in exclude_terms:
+            continue
+        for category in category_map.get(normalized.lower(), ()):
             pairs.add((report_id, category))
     return pd.DataFrame(sorted(pairs), columns=["report_id", "category"])
 
@@ -113,6 +128,11 @@ def compare_binary_outcome(df: pd.DataFrame, outcome_col: str) -> dict:
 
 
 def compare_ae_categories(df: pd.DataFrame, report_categories: pd.DataFrame, categories: list[str]) -> pd.DataFrame:
+    """Fisher's exact test per category, plus Benjamini-Hochberg FDR correction across all
+    `len(categories)` tests run here (research/hypotheses.md H3 falsifiability: "not supported if
+    no ... difference is observed ... after correcting for multiple comparisons" -- the raw
+    per-category p-values alone were never sufficient to claim H3 support for any one category).
+    """
     misuse_ids = set(df[df["group"] == UseClassification.MISUSE.value]["report_id"])
     therapeutic_ids = set(df[df["group"] == UseClassification.THERAPEUTIC.value]["report_id"])
     cats_by_report: dict[str, set[int]] = {
@@ -137,7 +157,15 @@ def compare_ae_categories(df: pd.DataFrame, report_categories: pd.DataFrame, cat
                 "fisher_p_value": float(fisher_p),
             }
         )
-    return pd.DataFrame(rows).sort_values("fisher_p_value")
+    table = pd.DataFrame(rows)
+    if len(table) > 0:
+        rejected, qvals, _, _ = multipletests(table["fisher_p_value"].to_numpy(), alpha=0.05, method="fdr_bh")
+        table["fdr_q_value"] = qvals
+        table["significant_fdr_05"] = rejected
+    else:
+        table["fdr_q_value"] = []
+        table["significant_fdr_05"] = []
+    return table.sort_values("fisher_p_value")
 
 
 def compare_demographics(df: pd.DataFrame) -> dict:
@@ -165,12 +193,39 @@ def compare_demographics(df: pd.DataFrame) -> dict:
     return {"age": age_result, "sex": sex_result}
 
 
+def load_full_classification_distribution(db) -> dict[str, int]:
+    """Every UseClassification bucket, not just the two (THERAPEUTIC/MISUSE) compared in this
+    module -- reported for transparency, e.g. how many reports the v2 classifier now places in
+    AMBIGUOUS_EXPOSURE rather than the v1 classifier's more permissive MISUSE."""
+    rows = (
+        db.query(ReportClassification.use_classification, FaersReport.id)
+        .join(FaersReport, FaersReport.id == ReportClassification.report_id)
+        .filter(FaersReport.is_deduplicated_latest.is_(True))
+        .all()
+    )
+    counts: dict[str, int] = {}
+    for classification, _ in rows:
+        key = classification.value if isinstance(classification, UseClassification) else str(classification)
+        counts[key] = counts.get(key, 0) + 1
+    return counts
+
+
 def run() -> None:
     db = SessionLocal()
     try:
         df = load_group_report_table(db)
+        full_distribution = load_full_classification_distribution(db)
         category_map = load_ae_category_map()
         report_categories = load_report_categories(db, category_map)
+        # Leakage-controlled sensitivity variant: exclude every reaction term the classifier
+        # itself treats as misuse evidence from AE-category membership, so a report cannot count
+        # toward a category purely because the same term that got it labeled MISUSE also happens
+        # to sit in research/ae_categories.csv (concretely: "substance abuse" is both a
+        # high-confidence misuse term and a "psychiatric" category entry -- see
+        # pipelines/faers/classification.py's module docstring).
+        report_categories_no_leakage = load_report_categories(
+            db, category_map, exclude_terms=ALL_MISUSE_EVIDENCE_TERMS
+        )
     finally:
         db.close()
 
@@ -179,23 +234,48 @@ def run() -> None:
 
     outcomes = [compare_binary_outcome(df, col) for col in ("serious", "hospitalization", "death")]
     category_table = compare_ae_categories(df, report_categories, categories)
+    category_table_no_leakage = compare_ae_categories(df, report_categories_no_leakage, categories)
     demographics = compare_demographics(df)
 
     strata_meet_minimum = all(n >= MIN_STRATUM_REPORTS for n in group_sizes.values())
 
+    n_fdr_significant = int(category_table["significant_fdr_05"].sum())
+    n_fdr_significant_no_leakage = int(category_table_no_leakage["significant_fdr_05"].sum())
+
     result = {
         "label": "SECONDARY (H3: therapeutic vs. misuse comparison)",
+        "classifier_version": CLASSIFIER_VERSION,
         "group_sizes": {str(k): int(v) for k, v in group_sizes.items()},
+        "full_classification_distribution": full_distribution,
         "strata_meet_minimum_20_reports": strata_meet_minimum,
         "seriousness_outcomes": outcomes,
         "ae_category_comparison": category_table.to_dict(orient="records"),
+        "ae_category_comparison_multiple_comparison_note": (
+            f"{n_fdr_significant}/{len(category_table)} categories remain significant after "
+            "Benjamini-Hochberg FDR correction (q<0.05) across all categories tested; see "
+            "significant_fdr_05 per row. research/hypotheses.md H3 falsifiability requires "
+            "surviving multiple-comparison correction, not raw Fisher p<0.05 alone."
+        ),
+        "ae_category_comparison_leakage_controlled": category_table_no_leakage.to_dict(orient="records"),
+        "ae_category_comparison_leakage_controlled_note": (
+            "Sensitivity variant: excludes every reaction term the classifier itself uses as "
+            "misuse evidence from AE-category membership, controlling for classifier-outcome "
+            f"leakage (e.g. 'substance abuse' is both misuse evidence and a psychiatric-category "
+            f"entry). {n_fdr_significant_no_leakage}/{len(category_table_no_leakage)} categories "
+            "significant after FDR correction in this controlled variant, vs. "
+            f"{n_fdr_significant}/{len(category_table)} in the primary (uncontrolled) comparison."
+        ),
         "demographics": demographics,
     }
     with (ARTIFACTS_DIR / "misuse_analysis_results.json").open("w") as f:
         json.dump(result, f, indent=2, default=str)
     category_table.to_csv(ARTIFACTS_DIR / "misuse_vs_therapeutic_ae_categories.csv", index=False)
+    category_table_no_leakage.to_csv(
+        ARTIFACTS_DIR / "misuse_vs_therapeutic_ae_categories_leakage_controlled.csv", index=False
+    )
 
     print(f"Group sizes: {result['group_sizes']} (both >= {MIN_STRATUM_REPORTS}: {strata_meet_minimum})")
+    print(f"Full classification distribution: {full_distribution}")
     print("\nSeriousness outcomes (misuse vs. therapeutic):")
     for o in outcomes:
         print(
@@ -204,8 +284,10 @@ def run() -> None:
             f"({o['therapeutic_proportion']:.1%}) -- OR={o['odds_ratio']:.2f} "
             f"[{o['ci_low']:.2f}, {o['ci_high']:.2f}], Fisher p={o['fisher_p_value']:.4g}"
         )
-    print("\nTop AE category differences (by Fisher p-value):")
+    print("\nTop AE category differences (by Fisher p-value), primary (uncontrolled) comparison:")
     print(category_table.head(5).to_string(index=False))
+    print(f"\n{result['ae_category_comparison_multiple_comparison_note']}")
+    print(f"\n{result['ae_category_comparison_leakage_controlled_note']}")
     print(f"\nWrote {ARTIFACTS_DIR / 'misuse_analysis_results.json'}")
 
 

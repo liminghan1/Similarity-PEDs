@@ -101,6 +101,13 @@ naive causal reading.
 **Falsifiability:** H3 is not supported if no statistically and practically meaningful difference is observed
 across the tested outcome measures after correcting for multiple comparisons.
 
+*Implementation note (2026-09-04, logged in `analysis_plan.md`'s Deviations table, not here, since this
+document's own text was not changed): the multiple-comparison correction this falsifiability clause requires
+was not actually implemented in `analysis/misuse_analysis.py` until this date, and the misuse classifier used
+up to that point did not distinguish high-confidence from ambiguous misuse evidence. Both are now fixed
+(Benjamini-Hochberg FDR correction + a classifier-outcome-leakage-controlled sensitivity variant); see
+`reports/research_report.md` Discussion for the corrected result.*
+
 ---
 
 ## H4 — Receptor/pharmacological features associated with specific adverse-event categories
