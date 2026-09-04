@@ -75,6 +75,9 @@ jobs:
       - name: Build phenotype matrices (Phase 8)
         run: make build-datasets
 
+      - name: All-FAERS background for Sensitivity 6 (live openFDA aggregate counts, Phase 11)
+        run: make full-faers-background
+
       - name: Run similarity/matrix-association/clustering/misuse/sensitivity analyses (Phase 9-11)
         run: make analyze
 
