@@ -48,16 +48,19 @@ export default async function LimitationsPage() {
 
       <Card title="The cohort-relative safety-phenotype background is a methodological choice with real consequences">
         <p className="text-sm text-slate-700">
-          Each compound&apos;s logROR is computed against the rest of the 10-compound cohort, not the
-          full FAERS database. Testosterone contributes 75% of total cohort report volume (5,549 of
-          7,433 reports) and its safety profile is strongly anti-correlated with every other cohort
-          compound (Pearson r as low as -0.96), while the other nine compounds are strongly
-          positively correlated with each other. Because the background is cohort-relative, one
-          high-volume, distinctively-profiled compound can mechanically pull every other compound&apos;s
-          relative logROR in a shared direction. An all-FAERS background was pre-specified as a
-          sensitivity analysis but could not be run: this project&apos;s FAERS ingestion deliberately
-          queries only cohort-relevant reports (a data-minimization design choice), so the
-          comparator data that variant needs does not exist in this dataset.
+          Each compound&apos;s primary logROR is computed against the rest of the 10-compound
+          cohort, not the full FAERS database. Testosterone contributes 75% of total cohort report
+          volume (5,549 of 7,433 reports) and its cohort-relative safety profile is strongly
+          anti-correlated with every other cohort compound (Pearson r as low as -0.96), while the
+          other nine compounds are strongly positively correlated with each other. This is a real,
+          now-confirmed effect of the cohort-relative background: an all-FAERS-background
+          sensitivity variant (live openFDA aggregate count queries rather than a full
+          re-ingestion -- see Methods) shows testosterone&apos;s correlation with the other nine
+          compounds flip to mostly positive instead, and per-cell logROR agrees with the
+          cohort-relative version only weakly (r=0.522, 57.3% sign agreement across 110 cells).
+          Reassuringly, the H2 structural-similarity conclusion itself is unchanged under either
+          background (both null, similar effect size) -- but this is a genuine methodological
+          sensitivity in the underlying safety-phenotype numbers, not just a hypothetical concern.
         </p>
       </Card>
 

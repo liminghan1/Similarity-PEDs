@@ -152,7 +152,12 @@ export default function MethodsPage() {
             <strong>Sensitivity analyses:</strong> all 8 pre-specified variants (report-count
             thresholds, parent-vs-ester scope, mapping confidence, term vs. category granularity,
             alternate similarity metrics, alternate phenotype background) were run against the one
-            fully computable primary result (H2); 8/10 variants were computable with current data.
+            fully computable primary result (H2); 9/10 variants were computable with current data.
+            The all-FAERS-background variant (compound vs. the entire FAERS database rather than
+            only the other 9 cohort compounds) was initially infeasible without a full database
+            re-ingestion, but is now computed via ~132 live, count-only openFDA aggregate queries
+            (<Cite path="analysis/full_faers_background.py" />) instead -- see Limitations for
+            what this changed and what it didn&apos;t.
           </li>
         </ul>
         <p className="mt-2 text-xs text-slate-500">

@@ -85,6 +85,14 @@ phenotype, not silently absent.
   scoped to what the project's analyses actually use.
 - **Cross-source duplicate reports** (FDA's own `duplicate`/`reportduplicate` fields) -- see
   `docs/faers_deduplication.md` for why this is a documented limitation, not an oversight.
+- **The rest of FAERS** (every report not mentioning a cohort compound) -- this project's ~7,433
+  ingested reports are a small slice of openFDA's ~20.7M-report `/drug/event` database, by design.
+  This did initially block one pre-specified sensitivity analysis (an all-FAERS-background variant
+  of Sensitivity 6, comparing each compound to the entire database instead of only the other 9
+  cohort compounds) -- but `analysis/full_faers_background.py` resolved that without ingesting the
+  full database, by querying openFDA's own aggregate counts (`meta.results.total` on count-only
+  requests) live instead. See `research/analysis_plan.md`'s Deviations table (2026-09-04 entry) for
+  what that sensitivity variant found.
 
 ## A real false-positive caught and fixed during this pipeline's first live run
 

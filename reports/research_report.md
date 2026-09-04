@@ -1,6 +1,6 @@
 # Structure-to-Safety Research Report
 
-**Generated:** 2026-09-04T00:35:55.358404+00:00 at commit `0139c0d` -- regenerate with `uv run python -m analysis.generate_reports` after any pipeline re-run.
+**Generated:** 2026-09-04T01:02:47.328265+00:00 at commit `ada444d` -- regenerate with `uv run python -m analysis.generate_reports` after any pipeline re-run.
 
 **Status:** All findings in this report are derived from real ChEMBL/BindingDB/FAERS data (no synthetic data was used in any inferential result). See `TODO.md` for full phase-by-phase build history and `research/analysis_plan.md` for the pre-specified plan and its one documented, pre-result deviation.
 
@@ -18,7 +18,9 @@ this compound class proved far sparser than anticipated (only 3/10 compounds had
 and only 1 of 45 compound pairs shared any receptor target). The fully computable secondary test
 (structural similarity alone vs. safety-reporting-profile similarity, n=10 compounds) found no
 significant association (Spearman rho=-0.293, one-sided p=0.956), a result that was stable across
-all six computable pre-specified sensitivity analyses. In contrast, a secondary comparison of
+9 of 10 computable pre-specified sensitivity variants, including an all-FAERS-background variant
+made newly computable via live openFDA aggregate queries rather than a full re-ingestion. In
+contrast, a secondary comparison of
 FAERS reports classified as therapeutic-use-associated versus misuse-associated (using a two-tier
 classifier that never treats ambiguous exposure evidence as sufficient alone for a misuse label)
 found statistically significant differences in seriousness, hospitalization, and
@@ -172,7 +174,7 @@ Group sizes: **429** misuse-classified reports, **450** therapeutic-classified r
 
 ### Sensitivity analyses (Phase 11)
 
-**8/10** pre-specified sensitivity variants were computable with current data; all computable variants remained non-significant and directionally consistent with the primary H2 result (Figure 10; full results in `artifacts/matrices/sensitivity_results.json`).
+**9/10** pre-specified sensitivity variants were computable with current data; all computable variants remained non-significant and directionally consistent with the primary H2 result (Figure 10; full results in `artifacts/matrices/sensitivity_results.json`).
 
 
 ## Discussion
@@ -191,10 +193,11 @@ a refuted one.
 **H2 (secondary): no evidence that structural similarity alone predicts safety-profile
 similarity.** The fully computable structure-only-vs-safety test found a non-significant, slightly
 negative association (rho=-0.293, one-sided p=0.956), and this null finding was stable across all
-six sensitivity variants that could be computed (report thresholds, parent-vs-ester scope, mapping
+9 sensitivity variants that could be computed (report thresholds, parent-vs-ester scope, mapping
 confidence, individual-term vs. category granularity, alternate similarity metrics, alternate
-phenotype definition) -- rho remained negative or near-zero throughout (range -0.42 to 0.02), and
-no variant approached significance. Independent hierarchical clustering of the two representations
+phenotype definition including both a standardized-proportion and, now, an all-FAERS-background
+variant, and misuse-only reports) -- rho remained negative or near-zero throughout (range -0.42 to
+0.03), and no variant approached significance. Independent hierarchical clustering of the two representations
 showed essentially no agreement (ARI=-0.111, NMI=0.081), and a Ridge-regression exploratory
 analysis (H4, molecular descriptors predicting each AE category) found no category with a
 significant permutation-test result. Three independent analytical approaches converge on the same
@@ -202,18 +205,34 @@ conclusion using this cohort and this FAERS extract.
 
 A plausible contributor to the negative (rather than merely null) trend, flagged during Phase 8's
 exploratory data inspection and directly visible in Figure 6, is that **testosterone's FAERS safety
-profile is strongly *anti-correlated* with every other cohort compound** (Pearson r as low as
--0.96), while the other nine compounds are all strongly *positively* correlated with each other
-(r=0.41-0.95). Testosterone also dominates the cohort's total report volume (5,549 of 7,433
-reports, 75%). Because the primary safety-phenotype metric uses a cohort-relative background
-(compound vs. the rest of the cohort), a single high-volume, distinctively-profiled compound can
-mechanically pull every other compound's relative logROR profile in a shared direction -- a known
-property of this background choice, which Sensitivity 6 (alternate phenotype definition) was
-designed to probe, though the "all-FAERS background" variant that would most directly test this
-could not be run (this project did not ingest the full FAERS database; see Limitations). This is a
-real methodological consideration for interpreting the H2 null result, not a data error --
-testosterone's structural similarity to the rest of the cohort is unremarkable (Figure 5), so this
-pattern is specific to the safety-reporting axis.
+profile is strongly *anti-correlated* with every other cohort compound under the cohort-relative
+background** (Pearson r as low as -0.96), while the other nine compounds are all strongly
+*positively* correlated with each other (r=0.41-0.95). Testosterone also dominates the cohort's
+total report volume (5,549 of 7,433 reports, 75%). Because the primary safety-phenotype metric uses
+a cohort-relative background (compound vs. the rest of the cohort), a single high-volume,
+distinctively-profiled compound can mechanically pull every other compound's relative logROR
+profile in a shared direction.
+
+**This mechanism is now directly confirmed, and directly tested against the primary conclusion.**
+`analysis/full_faers_background.py` obtains the equivalent all-FAERS background through live
+openFDA count-only queries (132 requests: per-compound, per-category, and grand totals) rather
+than a full re-ingestion, making the previously-infeasible "all-FAERS background" variant of
+Sensitivity 6 computable. Under this background, testosterone's correlation with the other nine
+compounds flips from strongly negative to mostly positive (7 of 9 compounds now r=0.41-0.58, only
+2 near-zero) -- five categories that looked *under*-reported for testosterone relative to the
+cohort (hematologic, hepatic, renal, metabolic, dermatologic, all logROR<0 cohort-relative) become
+*at-or-above* the general FAERS population's rate (logROR>=0 all-FAERS-relative) once the
+comparator is the full database rather than nine misuse-skewed cohort compounds. Across all 110
+compound x category cells, the two backgrounds' logROR values correlate at only r=0.522, with
+57.3% sign agreement -- barely better than chance. **Despite this, re-running the H2 Mantel test
+itself under the all-FAERS-background safety distance matrix still finds no significant
+association** (rho=-0.237, one-sided p=0.884, Figure 10) -- a similar magnitude and direction to
+the primary cohort-relative result (rho=-0.293, p=0.956). The cohort-relative background choice
+does materially distort individual compound-category cells, exactly as hypothesized, but this does
+not change the pairwise-similarity conclusion that H2 draws on: structural similarity does not
+predict safety-profile similarity under either background. Testosterone's structural similarity to
+the rest of the cohort is unremarkable (Figure 5), so the background-choice sensitivity is specific
+to the safety-reporting axis, not a symptom of a broader data problem.
 
 **H3 (secondary): therapeutic-use and misuse-associated reports differ substantially, including
 after multiple-comparison correction.** Unlike H1/H2, this comparison has real statistical power
@@ -282,15 +301,22 @@ primary analysis (H1) entirely. This reflects real, documented gaps in ChEMBL/Bi
 for this compound class (see Discussion), not a pipeline defect -- but it means this report cannot
 speak to the receptor-pharmacology-to-safety question at all.
 
-**The cohort-relative safety-phenotype background is a methodological choice with real
-consequences**, discussed above: with one compound (testosterone) contributing 75% of total report
-volume and a distinctively different safety profile, every other compound's relative logROR
-reflects both its own reporting pattern and its relationship to testosterone's. An all-FAERS
-background (comparing each compound to the entire FAERS database rather than only the other 9
-cohort compounds) was pre-specified as a sensitivity analysis but could not be run -- this project's
-FAERS ingestion pipeline deliberately queries only cohort-relevant reports (a data-minimization
-design choice, `pipelines/faers/README.md`), not the full FAERS database, so the comparator data
-needed for that specific sensitivity variant does not exist in this dataset.
+**The cohort-relative safety-phenotype background is a methodological choice with real,
+now-confirmed consequences**, discussed above: with one compound (testosterone) contributing 75%
+of total report volume, every other compound's relative logROR reflects both its own reporting
+pattern and its relationship to testosterone's. An all-FAERS background (comparing each compound
+to the entire FAERS database via live openFDA count queries rather than a full re-ingestion, see
+`analysis/full_faers_background.py`) is now computable and confirms the mechanism: per-cell logROR
+values agree with the cohort-relative background only weakly (r=0.522 in magnitude, 57.3% sign
+agreement across 110 cells) -- but the H2 conclusion itself (structural similarity vs. safety
+similarity) is unchanged under either background (both null, similar rho). This all-FAERS
+background is itself not a complete solution: it depends on openFDA's live, continuously-updated
+aggregate counts rather than a frozen extract (a re-run weeks later could return slightly different
+totals, unlike this project's own frozen cohort ingestion), and per-compound/per-category counts
+were queried live for consistency rather than reused from this project's own capped ingestion
+(testosterone alone is capped at 5,000 of its true 31,733 reports, `pipelines/faers/README.md`),
+which is more rigorous but means the two background's underlying report sets are not perfectly
+nested subsets of each other.
 
 **Confounding is not controlled for.** Age, sex, underlying disease, polypharmacy, other
 performance-and-image-enhancing-drug exposure, route of administration, product

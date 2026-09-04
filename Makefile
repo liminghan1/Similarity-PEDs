@@ -1,4 +1,4 @@
-.PHONY: help venv db-up db-down db-migrate db-revision api test lint ingest build-datasets analyze figures report clean
+.PHONY: help venv db-up db-down db-migrate db-revision api test lint ingest full-faers-background build-datasets analyze figures report clean
 
 help:
 	@echo "Structure-to-Safety -- common commands"
@@ -11,6 +11,7 @@ help:
 	@echo "  make test            Run the pytest suite"
 	@echo "  make lint            Run ruff"
 	@echo "  make ingest          Run all data-source ingestion pipelines (pipelines/) [Phase 4-6, not yet implemented]"
+	@echo "  make full-faers-background   Live openFDA aggregate counts for Sensitivity 6's all-FAERS background (~132 requests, ~2 min)"
 	@echo "  make build-datasets  Build phenotype matrices from ingested data [Phase 8, not yet implemented]"
 	@echo "  make analyze         Run the primary + secondary analyses [Phase 9-11, not yet implemented]"
 	@echo "  make figures         Generate publication figures [Phase 12, not yet implemented]"
@@ -56,6 +57,10 @@ ingest:
 	uv run python -m pipelines.faers.ingest
 	@echo "Ingestion complete for Phases 3-6."
 
+full-faers-background:
+	@echo "== All-FAERS background for Sensitivity 6 (live openFDA aggregate counts, Phase 11) =="
+	uv run python -m analysis.full_faers_background
+
 build-datasets:
 	@echo "== Molecular / receptor / safety phenotype matrices (Phase 8) =="
 	uv run python -m analysis.phenotype_matrix
@@ -71,7 +76,7 @@ analyze:
 	uv run python -m analysis.misuse_analysis
 	@echo "== Multivariate association, H4 (Phase 10) =="
 	uv run python -m analysis.multivariate_association
-	@echo "== Sensitivity analyses (Phase 11) =="
+	@echo "== Sensitivity analyses (Phase 11; run 'make full-faers-background' first for the all-FAERS-background variant) =="
 	uv run python -m analysis.sensitivity
 
 figures:

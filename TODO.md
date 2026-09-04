@@ -517,6 +517,33 @@ correction, documented as such, not silently folded in):
       including the new `ambiguous_exposure` bucket; `/methods` and `/limitations` pages updated
       to describe the v2 classifier and its known remaining edges.
 - [x] 244 backend tests passing after this pass (up from 216).
+- [x] **Sensitivity 6's all-FAERS background, previously "not computable," is now computed.**
+      External review pointed out the cohort-relative safety-phenotype background (each compound
+      vs. the other 9 cohort compounds, not all of FAERS) could be mechanically distorting results
+      given testosterone's 75% report-volume share, and suggested running both backgrounds and
+      comparing. `research/analysis_plan.md`'s Deviations table previously recorded this as
+      infeasible without ingesting the full ~20.7M-report FAERS database. **Realized the aggregate
+      counts an all-FAERS background needs don't require ingesting the database at all** -- they
+      can be read directly from openFDA's own count-only aggregation (`meta.results.total` on a
+      `limit=1` query). New `analysis/full_faers_background.py`: 132 live, count-only queries (10
+      compound totals + 11 category totals + 1 grand total + 10x11 combined), querying every
+      compound/category count live rather than reusing this project's own ingestion (which caps
+      testosterone at 5,000 of its true 31,733 reports) so all 10 compounds are treated uniformly.
+      New `make full-faers-background` target. Wired into `analysis/sensitivity.py`'s Sensitivity
+      6 in place of the prior hardcoded `computable: false`; Figure 10 and the research report
+      regenerated. **Real result**: 9/10 sensitivity variants now computable (was 8/10). The
+      all-FAERS-background Mantel test itself is still null (rho=-0.237, p=0.884, consistent with
+      the primary rho=-0.293) -- **the H2 conclusion does not change** -- but the underlying
+      per-cell logROR values shift substantially: testosterone's correlation with the other 9
+      compounds flips from strongly negative (r as low as -0.96, cohort-relative) to mostly
+      positive (7/9 compounds r=0.41-0.58, all-FAERS-relative), and the two backgrounds agree on
+      logROR sign only 57.3% of the time across 110 shared cells (r=0.522 in magnitude). This
+      directly confirms the testosterone-dominance mechanism flagged in the H2 Discussion as a
+      real, measurable effect on the safety-phenotype numbers, while also showing it does not
+      overturn the null H2 finding -- a genuine, nuanced result reported as such. Covered by
+      `backend/tests/test_full_faers_background.py` (pure 2x2-arithmetic and reverse-mapping
+      tests; the live-query function itself is exercised by the real run, not the test suite, per
+      this project's established pattern of not hitting live external APIs in tests).
 
 ---
 

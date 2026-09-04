@@ -390,11 +390,13 @@ def figure10_sensitivity_summary() -> None:
         label_y = height + pad * 0.3 if height >= 0 else height - pad * 0.3
         ax.text(bar.get_x() + bar.get_width() / 2, label_y, ann, ha="center",
                  va="bottom" if height >= 0 else "top", fontsize=7)
+    n_computable = sum(1 for e in list(sens.values()) if e.get("computable"))
     _captioned_title(
         ax,
         "Figure 10. Sensitivity-analysis summary (Phase 11): the H2 (structure-only vs. safety) "
-        "Mantel test re-run under each of the 8 pre-specified variants. All computable variants "
-        "remain non-significant (p>0.05); gray bars are variants not computable with current data.",
+        f"Mantel test re-run under each of the 8 pre-specified sensitivity analyses "
+        f"({n_computable}/{len(sens)} variants computable with current data). All computable "
+        "variants remain non-significant (p>0.05); gray bars are variants not computable.",
         width=100,
     )
     _save(fig, "figure10_sensitivity_summary")

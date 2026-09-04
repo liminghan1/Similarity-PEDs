@@ -5,10 +5,15 @@ single varied condition, holding everything else fixed, to check whether the nul
 (rho=-0.293, p_one_sided=0.956 on the full 10-compound cohort) is stable.
 
 Every sensitivity is reported, including the ones that turn out not to be computable with current
-data (e.g. an "all-FAERS background" variant of Sensitivity 6 cannot be built at all, because this
-project only ingested cohort-relevant FAERS reports, not the full FAERS database -- see Sensitivity
-6 below) -- a sensitivity that cannot be run is itself a reportable fact, not something to skip
-silently.
+data -- a sensitivity that cannot be run is itself a reportable fact, not something to skip
+silently. The "all-FAERS background" variant of Sensitivity 6 was not computable in an earlier
+pass (this project only ingests cohort-relevant FAERS reports, not the full database), but is now
+computable via analysis/full_faers_background.py, which gets the equivalent aggregate counts
+through live openFDA count-only queries instead of a full re-ingestion -- see that module's
+docstring. Run `uv run python -m analysis.full_faers_background` before this script to produce
+`artifacts/matrices/full_faers_background_matrix.csv`; if that file is missing, Sensitivity 6's
+all-FAERS variant reports itself not computable with a pointer to that command, rather than
+silently falling back to a stale or synthetic result.
 
 Usage:
     uv run python -m analysis.sensitivity
@@ -39,6 +44,7 @@ from analysis.phenotype_matrix import (
 )
 from analysis.similarity_analysis import (
     _correlation_distance_matrix,
+    build_safety_distance_matrix,
     build_structure_distance_matrix,
 )
 from backend.app.analytics.chemistry import compute_morgan_fingerprint
@@ -316,16 +322,50 @@ def run() -> None:
             results["6_standardized_proportion_phenotype"] = {"computable": False, "reason": str(exc)}
     else:
         results["6_standardized_proportion_phenotype"] = {"computable": False, "reason": "no >=4-compound complete subset"}
-    results["6_all_faers_background"] = {
-        "computable": False,
-        "reason": (
-            "This project ingested only cohort-relevant FAERS reports (pipelines/faers/ingest.py "
-            "queries per-compound alias terms), not the full FAERS database -- an all-FAERS "
-            "background (compound vs. every other drug in FAERS, not just cohort compounds) "
-            "cannot be constructed from the data actually collected. Documented as infeasible, "
-            "not silently skipped."
-        ),
-    }
+    full_faers_matrix_path = ARTIFACTS_DIR / "full_faers_background_matrix.csv"
+    if full_faers_matrix_path.exists():
+        full_faers_matrix = pd.read_csv(full_faers_matrix_path, index_col=0)
+        full_faers_dist = build_safety_distance_matrix(full_faers_matrix)
+        common_6b = sorted(set(structure_dist.index) & set(full_faers_dist.index))
+        subset_6b = (
+            find_largest_complete_subset(full_faers_dist.loc[common_6b, common_6b], min_objects=4)
+            if len(common_6b) >= 4
+            else []
+        )
+        if subset_6b:
+            try:
+                r6b = mantel_test(
+                    structure_dist.loc[subset_6b, subset_6b], full_faers_dist.loc[subset_6b, subset_6b]
+                )
+                results["6_all_faers_background"] = {
+                    "computable": True,
+                    "n_objects_tested": r6b.n_objects,
+                    "objects_tested": list(r6b.labels),
+                    "statistic_spearman_rho": r6b.statistic,
+                    "p_value_one_sided": r6b.p_value_one_sided,
+                    "p_value_two_sided": r6b.p_value_two_sided,
+                    "note": (
+                        "Safety background = entire FAERS database (live openFDA count queries via "
+                        "analysis/full_faers_background.py), not just the other 9 cohort compounds. "
+                        "See that module's counts artifact for the raw a/b/c/d per cell."
+                    ),
+                }
+            except DegenerateMatrixError as exc:
+                results["6_all_faers_background"] = {"computable": False, "reason": str(exc)}
+        else:
+            results["6_all_faers_background"] = {
+                "computable": False,
+                "reason": "no >=4-compound complete subset shared between structure and all-FAERS-background safety distance",
+            }
+    else:
+        results["6_all_faers_background"] = {
+            "computable": False,
+            "reason": (
+                "artifacts/matrices/full_faers_background_matrix.csv not found -- run "
+                "`uv run python -m analysis.full_faers_background` first (live openFDA count "
+                "queries; not part of this script's own, fully-offline computation)."
+            ),
+        }
 
     # Sensitivity 7 / 8: therapeutic-only / misuse-only report subsets
     therapeutic_only = filter_report_compound(drug_membership, use_classification="therapeutic")
