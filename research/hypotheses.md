@@ -10,7 +10,7 @@ criteria that determine which compounds/reports enter each test.
 
 These are hypotheses to be **tested**, not outcomes to be produced. A null or negative result (no detectable
 association) is a scientifically valid and reportable outcome, provided the methodology is sound. This document
-exists so that the primary analysis (Aim 3 / H1–H2) cannot be silently redefined after results are seen. Any
+exists so that the primary analysis (Aim 3 / H1–H2b) cannot be silently redefined after results are seen. Any
 change to a hypothesis or its operational definition after data inspection must be logged in
 [analysis_plan.md](analysis_plan.md) under "Deviations from pre-specified plan," with the original text, the
 change, the reason, and whether the change occurred before or after examining results.
@@ -47,15 +47,51 @@ sample size, or genuine absence of a detectable relationship at current data vol
 two-sided framing but tested as one-sided-positive per analysis_plan.md) or if the point estimate is
 near zero/negative with a confidence interval that excludes a scientifically meaningful positive association.
 
+*Note (2026-09-04, see Amendment log): this statement, null hypothesis, and operational definition were never
+changed -- H1 has always been about receptor pharmacology alone. What was wrong was the "Hypothesis-to-analysis
+mapping summary" table below, which listed H1's primary test as the **combined** structure+receptor distance
+matrix, not the receptor-only matrix this section actually defines. That table is now fixed to match this
+section, not the other way around.*
+
 ---
 
-## H2 — Incremental value of receptor pharmacology over structure alone
+## H2a — Structural similarity and reporting-profile similarity
+
+*(Added 2026-09-04, split out of the original single "H2" -- see Amendment log. The original H2 conflated two
+distinct claims: whether structure alone predicts safety-profile similarity, and whether receptor pharmacology
+adds incremental value over structure. Renamed the first claim H2a and kept the second as H2b, below, so each
+has its own operational definition and falsifiability criterion rather than sharing one that only cleanly fit
+the second.)*
+
+**Statement:** Anabolic-androgenic steroids that are more similar in molecular structure (2D fingerprint /
+descriptor similarity) will exhibit more similar real-world adverse-event **reporting** profiles in FAERS,
+compared to compound pairs that are less similar in structure.
+
+**Null hypothesis (H2a₀):** There is no association between pairwise structural similarity and pairwise FAERS
+reporting-profile similarity across the compound cohort (population Mantel/Spearman correlation of pairwise
+distances = 0).
+
+**Operational definition:**
+- Structural similarity: pairwise distance over the molecular structure representation (fingerprint + descriptor,
+  Sec. 15), computable for all compounds meeting the minimum FAERS report thresholds -- unlike H1/H2b, not
+  gated by receptor-bioactivity coverage.
+- Reporting-profile similarity: same safety phenotype matrix as H1 (Sec. 14).
+- Test: Mantel-style permutation test between the two distance matrices (Sec. 18). SECONDARY relative to H1.
+
+**Direction:** Positive association predicted (more structure-similar → more report-similar).
+
+**Falsifiability:** H2a is not supported if the permutation p-value exceeds the pre-specified alpha (0.05, tested
+as one-sided-positive) or if the point estimate is near zero/negative.
+
+---
+
+## H2b — Incremental value of receptor pharmacology over structure alone
 
 **Statement:** Molecular structural similarity alone (2D fingerprint / descriptor similarity) will explain less
 of the variation in FAERS reporting-profile similarity than a combined representation that adds receptor
 pharmacology to structure.
 
-**Null hypothesis (H2₀):** The association between structure-only similarity and reporting-profile similarity is
+**Null hypothesis (H2b₀):** The association between structure-only similarity and reporting-profile similarity is
 equal to (not smaller than) the association between combined structure+receptor similarity and reporting-profile
 similarity.
 
@@ -66,13 +102,14 @@ estrogenic/gynecomastia-related events vs. hepatic events). If true, receptor ph
 information about reporting phenotype beyond what structure alone provides.
 
 **Operational definition:** Compare three matrix-association results (Sec. 19, Sec. 21):
-(A) structure-only distance vs. safety distance, (B) receptor-only distance vs. safety distance,
-(C) combined distance vs. safety distance. This comparison is **secondary/exploratory** relative to H1's primary
-test (Sec. 40) because with ~10 compounds the number of independent comparisons that can be reliably
-distinguished is limited; formal statistical comparison of dependent correlations will be attempted but
-underpowered results will be reported as such, not suppressed.
+(A) structure-only distance vs. safety distance (= H2a's own test, reused rather than recomputed), (B)
+receptor-only distance vs. safety distance (= H1's own test, reused), (C) combined distance vs. safety distance.
+This comparison is **secondary/exploratory** relative to H1's primary test (Sec. 40) because with ~10 compounds
+the number of independent comparisons that can be reliably distinguished is limited; formal statistical
+comparison of dependent correlations will be attempted but underpowered results will be reported as such, not
+suppressed.
 
-**Falsifiability:** H2 is not supported if structure-only association is equal to or stronger than the combined
+**Falsifiability:** H2b is not supported if structure-only association is equal to or stronger than the combined
 association, or if the combined model does not improve out-of-sample predictive performance in
 cross-validated comparisons (Sec. 19, Sec. 21).
 
@@ -136,13 +173,14 @@ associations.
 
 | Hypothesis | Primary/Secondary | Analysis section | Primary test |
 |---|---|---|---|
-| H1 | **PRIMARY** | Sec. 18 (Central matrix-association test) | Mantel-style permutation test, combined molecular+receptor distance vs. safety distance |
-| H2 | SECONDARY | Sec. 19 (Compare representations) | Structure-only vs. receptor-only vs. combined matrix association; cross-validated comparison |
+| H1 | **PRIMARY** | Sec. 18 (Central matrix-association test) | Mantel-style permutation test, **receptor-only** distance vs. safety distance |
+| H2a | SECONDARY | Sec. 18 (same test infrastructure as H1) | Mantel-style permutation test, **structure-only** distance vs. safety distance |
+| H2b | SECONDARY | Sec. 19 (Compare representations) | Structure-only vs. receptor-only vs. combined matrix association; cross-validated comparison |
 | H3 | SECONDARY | Sec. 22 (Therapeutic vs. misuse) | Chi-square/Fisher tests, logistic regression, effect sizes |
 | H4 | EXPLORATORY | Sec. 21 (Multivariate association) | Penalized regression with permutation inference |
 
 ## Amendment log
 
-No amendments yet. Any future change to this document after data inspection must append an entry here with:
-date, section changed, original text, new text, reason, and whether the change was made before or after
-examining results.
+| Date | Section | Original | New | Reason | Before/after results examined |
+|---|---|---|---|---|---|
+| 2026-09-04 | H2 (split); Hypothesis-to-analysis mapping summary | A single H2 covering "structure alone explains less than combined structure+receptor" (a comparison of two matrix-association results), while the report's actual computable secondary result (structure-only distance vs. safety distance, reported since Phase 9) was never a formally pre-registered hypothesis in its own right. Separately, the mapping table listed H1's primary test as the **combined** structure+receptor distance matrix, contradicting H1's own statement/operational-definition text above (receptor pharmacology alone). | Split H2 into **H2a** (structure-only distance vs. safety distance -- the test this project actually reports as its main computable secondary result) and **H2b** (the original comparison: does combined structure+receptor explain more than structure alone). Fixed the mapping table so H1's primary test is receptor-only distance vs. safety distance, matching H1's own text. | External review noted the mismatch between H1's stated definition (receptor pharmacology) and its coded primary test (combined structure+receptor), calling it "unnecessarily vulnerable to a reviewer asking: was the endpoint changed?" -- and separately that the report's actual computed "H2" result doesn't match hypotheses.md's own H2 definition. Both are real internal-consistency bugs in this document and the code, not scientific findings, and were caught by reading text against code/report output, not by seeing a result change. | No result changed: H1's and H2b's underlying tests (receptor-only, combined) were already computed and already both NOT COMPUTABLE for the same receptor-sparsity reason regardless of label; H2a's test (structure-only) was already computed and already reported as the main secondary result. This is a labeling/attribution fix, not a re-analysis -- logged here per this document's own rule regardless, since the change was made after the primary analysis had already been run and its results seen. |

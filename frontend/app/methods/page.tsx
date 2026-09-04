@@ -107,11 +107,16 @@ export default function MethodsPage() {
             categories, same 3-column minimum.
           </li>
           <li>
-            <strong>Matrix-association test (H1, pre-specified primary):</strong> a Mantel-style
-            permutation test -- Spearman rho on upper-triangle pairwise distances between the
-            combined (structure+receptor) distance matrix and the safety distance matrix, N=9,999
+            <strong>Matrix-association test:</strong> a Mantel-style permutation test -- Spearman
+            rho on upper-triangle pairwise distances between two distance matrices, N=9,999
             permutations, seed=42, one- and two-sided empirical p-values, and a 1,999-resample
-            bootstrap confidence interval.
+            bootstrap confidence interval. The same test infrastructure is run three times, each
+            answering a distinct pre-registered hypothesis: <strong>H1 (pre-specified primary)</strong>{" "}
+            compares the receptor-only distance matrix against safety distance;{" "}
+            <strong>H2a (secondary)</strong> compares the structure-only distance matrix against
+            safety distance; <strong>H2b (secondary)</strong> compares the combined
+            (structure+receptor) distance matrix against safety distance, testing whether adding
+            receptor pharmacology to structure explains more than structure alone.
           </li>
         </ul>
         <p className="mt-2 text-xs text-slate-500">
@@ -152,7 +157,7 @@ export default function MethodsPage() {
             <strong>Sensitivity analyses:</strong> all 8 pre-specified variants (report-count
             thresholds, parent-vs-ester scope, mapping confidence, term vs. category granularity,
             alternate similarity metrics, alternate phenotype background) were run against the one
-            fully computable primary result (H2); 9/10 variants were computable with current data.
+            fully computable secondary result (H2a); 9/10 variants were computable with current data.
             The all-FAERS-background variant (compound vs. the entire FAERS database rather than
             only the other 9 cohort compounds) was initially infeasible without a full database
             re-ingestion, but is now computed via ~132 live, count-only openFDA aggregate queries

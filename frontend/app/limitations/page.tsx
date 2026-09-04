@@ -58,7 +58,7 @@ export default async function LimitationsPage() {
           re-ingestion -- see Methods) shows testosterone&apos;s correlation with the other nine
           compounds flip to mostly positive instead, and per-cell logROR agrees with the
           cohort-relative version only weakly (r=0.522, 57.3% sign agreement across 110 cells).
-          Reassuringly, the H2 structural-similarity conclusion itself is unchanged under either
+          Reassuringly, the H2a structural-similarity conclusion itself is unchanged under either
           background (both null, similar effect size) -- but this is a genuine methodological
           sensitivity in the underlying safety-phenotype numbers, not just a hypothetical concern.
         </p>

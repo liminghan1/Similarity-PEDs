@@ -221,15 +221,16 @@ well characterized. We built a reproducible pipeline integrating PubChem/RDKit m
 descriptors, ChEMBL/BindingDB receptor bioactivity, and FDA FAERS adverse-event reports for a
 10-compound AAS cohort, and tested whether pairwise molecular/pharmacological similarity is
 associated with pairwise FAERS safety-reporting-profile similarity via a pre-registered,
-permutation-based matrix-association test. The pre-specified primary test (combined structure +
-receptor pharmacology vs. safety phenotype) could not be executed: receptor bioactivity data for
-this compound class proved far sparser than anticipated (only 3/10 compounds had any measurement,
-and only 1 of 45 compound pairs shared any receptor target). The fully computable secondary test
-(structural similarity alone vs. safety-reporting-profile similarity, n=10 compounds) found no
-significant association (Spearman rho=-0.293, one-sided p=0.956), a result that was stable across
-9 of 10 computable pre-specified sensitivity variants, including an all-FAERS-background variant
-made newly computable via live openFDA aggregate queries rather than a full re-ingestion. In
-contrast, a secondary comparison of
+permutation-based matrix-association test. The pre-specified primary test (receptor pharmacology
+alone vs. safety phenotype) could not be executed, and neither could the related secondary test of
+whether adding receptor pharmacology to structure explains more than structure alone: receptor
+bioactivity data for this compound class proved far sparser than anticipated (only 3/10 compounds
+had any measurement, and only 1 of 45 compound pairs shared any receptor target). The fully
+computable secondary test (structural similarity alone vs. safety-reporting-profile similarity,
+n=10 compounds) found no significant association (Spearman rho=-0.293, one-sided p=0.956), a
+result that was stable across 9 of 10 computable pre-specified sensitivity variants, including an
+all-FAERS-background variant made newly computable via live openFDA aggregate queries rather than
+a full re-ingestion. In contrast, a secondary comparison of
 FAERS reports classified as therapeutic-use-associated versus misuse-associated (using a two-tier
 classifier that never treats ambiguous exposure evidence as sufficient alone for a misuse label)
 found statistically significant differences in seriousness, hospitalization, and
@@ -260,12 +261,15 @@ gap.
 FAERS is a spontaneous, voluntary reporting system. Every result in this report describes a
 *reporting association*, not incidence, prevalence, or a causal clinical effect -- see Limitations.
 
-The central research question, broken into four specific aims and four pre-registered hypotheses,
-is stated in full in `research/hypotheses.md`:
+The central research question, broken into four specific aims and five pre-registered hypotheses
+(H2 split into H2a/H2b, 2026-09-04 -- see `research/hypotheses.md`'s Amendment log), is stated in
+full in that file:
 
-- **H1** (PRIMARY): compounds more similar in receptor pharmacology will show more similar safety
-  reporting profiles.
-- **H2** (SECONDARY): structural similarity alone will explain less safety-profile variation than
+- **H1** (PRIMARY): compounds more similar in receptor pharmacology alone will show more similar
+  safety reporting profiles.
+- **H2a** (SECONDARY): compounds more similar in molecular structure alone will show more similar
+  safety reporting profiles.
+- **H2b** (SECONDARY): structural similarity alone will explain less safety-profile variation than
   a combined structure+receptor representation.
 - **H3** (SECONDARY): therapeutic-use-associated and misuse-associated reports will show
   measurably different safety reporting phenotypes.
@@ -310,10 +314,12 @@ reports, were excluded from the primary safety phenotype matrix as unreliable
 Tanimoto (fingerprint) and Euclidean (z-scored descriptor) distance. Receptor distance: 1 - Pearson
 correlation on shared pActivity columns, requiring >=3 shared columns (a 2-column correlation is
 mathematically deterministic and uninformative). Safety distance: 1 - Pearson correlation on shared
-logROR categories, same 3-column minimum. The pre-specified primary test (H1) is a Mantel-style
-permutation test (Spearman rho on upper-triangle distances, N=9,999 permutations, seed=42, one- and
-two-sided empirical p-values, 1,999-resample bootstrap CI) between the combined (structure+receptor)
-distance matrix and the safety distance matrix (`research/analysis_plan.md`).
+logROR categories, same 3-column minimum. The same Mantel-style permutation test (Spearman rho on
+upper-triangle distances, N=9,999 permutations, seed=42, one- and two-sided empirical p-values,
+1,999-resample bootstrap CI) is run three times against the safety distance matrix, each answering
+a distinct pre-registered hypothesis (`research/analysis_plan.md`): the pre-specified primary test
+(H1) uses the receptor-only distance matrix; H2a uses the structure-only distance matrix; H2b uses
+the combined (structure+receptor) distance matrix.
 
 **Secondary and exploratory analyses.** Independent hierarchical clustering of the structure and
 safety distance matrices (k chosen by max silhouette, k=2-5), compared via Adjusted Rand Index and
@@ -336,7 +342,7 @@ that classified it MISUSE. A penalized (Ridge) regression with leave-one-out cro
 permutation testing explored whether molecular descriptors predict each category's logROR
 (EXPLORATORY, n=10; H4 as originally specified around receptor features was infeasible for the
 same reason as H1). All 8 pre-specified sensitivity analyses (`research/analysis_plan.md` Sec. 7)
-were run against the one fully computable result (H2).
+were run against the one fully computable result (H2a).
 
 **Software and reproducibility.** Python 3.13, RDKit 2026.3.5, pandas, numpy, scipy, scikit-learn,
 SQLAlchemy/PostgreSQL, all pinned via `uv.lock`. All random seeds fixed (default 42). Every derived
@@ -344,18 +350,18 @@ artifact carries a provenance manifest with the git commit and generation timest
 
 DISCUSSION = """## Discussion
 
-**H1 (primary) could not be tested.** Receptor-bioactivity coverage for this compound class in
-ChEMBL and BindingDB, as of this pull, is far too sparse to support the pre-specified combined
-structure+receptor matrix-association test: only 3/10 cohort compounds have any measurement
-against any of the six target receptors, and only one compound pair shares any receptor target at
-all. This is not a coding limitation but a real gap in publicly available receptor pharmacology
-data for classic (non-drug-candidate) AAS -- `pipelines/chembl/README.md` and
-`pipelines/bindingdb/README.md` document plausible reasons (ChEMBL/BindingDB curation for this
-target class skews toward novel synthetic drug-candidate chemotypes such as SARMs, not
-long-established steroids used as reference compounds). H1 therefore remains an open question, not
-a refuted one.
+**H1 (primary) could not be tested, and neither could H2b, for the same reason.** Receptor-
+bioactivity coverage for this compound class in ChEMBL and BindingDB, as of this pull, is far too
+sparse to support a matrix-association test involving the receptor-only or combined distance
+matrices: only 3/10 cohort compounds have any measurement against any of the six target receptors,
+and only one compound pair shares any receptor target at all. This is not a coding limitation but a
+real gap in publicly available receptor pharmacology data for classic (non-drug-candidate) AAS --
+`pipelines/chembl/README.md` and `pipelines/bindingdb/README.md` document plausible reasons
+(ChEMBL/BindingDB curation for this target class skews toward novel synthetic drug-candidate
+chemotypes such as SARMs, not long-established steroids used as reference compounds). H1 and H2b
+therefore remain open questions, not refuted ones.
 
-**H2 (secondary): no evidence that structural similarity alone predicts safety-profile
+**H2a (secondary): no evidence that structural similarity alone predicts safety-profile
 similarity.** The fully computable structure-only-vs-safety test found a non-significant, slightly
 negative association (rho=-0.293, one-sided p=0.956), and this null finding was stable across all
 9 sensitivity variants that could be computed (report thresholds, parent-vs-ester scope, mapping
@@ -389,18 +395,18 @@ cohort (hematologic, hepatic, renal, metabolic, dermatologic, all logROR<0 cohor
 *at-or-above* the general FAERS population's rate (logROR>=0 all-FAERS-relative) once the
 comparator is the full database rather than nine misuse-skewed cohort compounds. Across all 110
 compound x category cells, the two backgrounds' logROR values correlate at only r=0.522, with
-57.3% sign agreement -- barely better than chance. **Despite this, re-running the H2 Mantel test
+57.3% sign agreement -- barely better than chance. **Despite this, re-running the H2a Mantel test
 itself under the all-FAERS-background safety distance matrix still finds no significant
 association** (rho=-0.237, one-sided p=0.884, Figure 10) -- a similar magnitude and direction to
 the primary cohort-relative result (rho=-0.293, p=0.956). The cohort-relative background choice
 does materially distort individual compound-category cells, exactly as hypothesized, but this does
-not change the pairwise-similarity conclusion that H2 draws on: structural similarity does not
+not change the pairwise-similarity conclusion that H2a draws on: structural similarity does not
 predict safety-profile similarity under either background. Testosterone's structural similarity to
 the rest of the cohort is unremarkable (Figure 5), so the background-choice sensitivity is specific
 to the safety-reporting axis, not a symptom of a broader data problem.
 
 **H3 (secondary): therapeutic-use and misuse-associated reports differ substantially, including
-after multiple-comparison correction.** Unlike H1/H2, this comparison has real statistical power
+after multiple-comparison correction.** Unlike H1/H2a/H2b, this comparison has real statistical power
 (429 misuse-classified, 450 therapeutic-classified reports under the v2 classifier -- see below --
 both far above the 20-report minimum) and found significant differences: misuse-associated reports
 show higher seriousness (OR=2.14, 95% CI 1.40-3.29, p<0.001) and hospitalization (OR=1.66, 95% CI
@@ -442,7 +448,7 @@ the other six are.
 null finding: the three 17-alpha-alkylated oral compounds in this cohort (oxandrolone, oxymetholone,
 stanozolol) form a distinct cluster in both hierarchical clustering and molecular PCA (Figures 3, 5),
 consistent with known structure-activity-relationship literature on this substituent class. This
-confirms the molecular representation itself is capturing real chemistry -- the null H2 result is
+confirms the molecular representation itself is capturing real chemistry -- the null H2a result is
 about the *link* to the safety phenotype, not a failure of the structural representation."""
 
 LIMITATIONS = """## Limitations
@@ -462,9 +468,10 @@ regardless of penalization.
 
 **Receptor bioactivity coverage is a first-order limitation, not a minor one.** 7/10 cohort
 compounds have zero measurements against any of the six receptors queried, preventing the intended
-primary analysis (H1) entirely. This reflects real, documented gaps in ChEMBL/BindingDB curation
-for this compound class (see Discussion), not a pipeline defect -- but it means this report cannot
-speak to the receptor-pharmacology-to-safety question at all.
+primary analysis (H1) and the structure-vs-combined comparison (H2b) entirely. This reflects real,
+documented gaps in ChEMBL/BindingDB curation for this compound class (see Discussion), not a
+pipeline defect -- but it means this report cannot speak to the receptor-pharmacology-to-safety
+question at all.
 
 **The cohort-relative safety-phenotype background is a methodological choice with real,
 now-confirmed consequences**, discussed above: with one compound (testosterone) contributing 75%
@@ -473,7 +480,7 @@ pattern and its relationship to testosterone's. An all-FAERS background (compari
 to the entire FAERS database via live openFDA count queries rather than a full re-ingestion, see
 `analysis/full_faers_background.py`) is now computable and confirms the mechanism: per-cell logROR
 values agree with the cohort-relative background only weakly (r=0.522 in magnitude, 57.3% sign
-agreement across 110 cells) -- but the H2 conclusion itself (structural similarity vs. safety
+agreement across 110 cells) -- but the H2a conclusion itself (structural similarity vs. safety
 similarity) is unchanged under either background (both null, similar rho). This all-FAERS
 background is itself not a complete solution: it depends on openFDA's live, continuously-updated
 aggregate counts rather than a frozen extract (a re-run weeks later could return slightly different
@@ -523,9 +530,10 @@ CONCLUSION = """## Conclusion
 This project built a reproducible, provenance-tracked pipeline integrating molecular structure,
 receptor pharmacology, and FAERS adverse-event reporting for a 10-compound AAS cohort, and executed
 a pre-registered analysis plan against real data end to end. The central, pre-specified test of
-whether receptor-pharmacology similarity predicts safety-reporting-profile similarity (H1) could not
-be run due to real, documented receptor-bioactivity data sparsity -- an honest negative capability
-finding, not a null scientific result. The fully computable structural-similarity test (H2) found no
+whether receptor-pharmacology similarity predicts safety-reporting-profile similarity (H1), and
+whether receptor pharmacology adds incremental value over structure alone (H2b), could not be run
+due to real, documented receptor-bioactivity data sparsity -- an honest negative capability
+finding, not a null scientific result. The fully computable structural-similarity test (H2a) found no
 significant association, a finding that was stable across every sensitivity analysis that could be
 run. In contrast, therapeutic-use-versus-misuse reporting phenotypes differ substantially and
 significantly (H3) after both multiple-comparison correction and a classifier-outcome-leakage
@@ -548,9 +556,9 @@ def render_research_report_md(dq: dict, results: dict) -> str:
     multivariate = results["multivariate"]
     sensitivity = results["sensitivity"]
 
-    h1 = next(r for r in assoc["results"] if r["label"] == "PRIMARY")
-    h2_structure = next(r for r in assoc["results"] if "structure-only" in r["description"])
-    h2_receptor = next(r for r in assoc["results"] if "receptor-only" in r["description"])
+    h1 = next(r for r in assoc["results"] if r["description"].startswith("H1"))
+    h2a = next(r for r in assoc["results"] if r["description"].startswith("H2a"))
+    h2b = next(r for r in assoc["results"] if r["description"].startswith("H2b"))
 
     n_sensitivity_computable = sum(1 for v in sensitivity.values() if v.get("computable"))
     n_sensitivity_total = len(sensitivity)
@@ -584,18 +592,18 @@ def render_research_report_md(dq: dict, results: dict) -> str:
 
 **Phenotype matrix coverage**: molecular descriptor matrix {n_molecular_compounds}/10 compounds fully populated; receptor phenotype matrix {manifest['receptor_matrix_primary_nonnull_cells']}/{receptor_total_cells} cells populated ({100 * manifest['receptor_matrix_primary_nonnull_cells'] / receptor_total_cells:.1f}%); safety phenotype matrix {manifest['safety_matrix_nonnull_cells']}/{safety_total_cells} cells populated ({100 * manifest['safety_matrix_nonnull_cells'] / safety_total_cells:.1f}%) across {len(manifest['ae_categories'])} research-defined AE categories.
 
-### Primary analysis (H1)
+### Primary analysis (H1: receptor pharmacology vs. safety phenotype)
 
 **NOT COMPUTABLE.** {h1['reason']}
 
-### Secondary analysis (H2): structure-only and receptor-only vs. safety phenotype
+### Secondary analysis: H2a (structure-only) and H2b (combined) vs. safety phenotype
 
-| Representation | n compounds | Spearman rho | p (one-sided) | p (two-sided) | Bootstrap 95% CI |
-|---|---|---|---|---|---|
-| Structure-only | {h2_structure['n_objects']} | {h2_structure['statistic_spearman_rho']:.3f} | {_fmt_p(h2_structure['p_value_one_sided'])} | {_fmt_p(h2_structure['p_value_two_sided'])} | see `artifacts/matrices/matrix_association_results.json` |
-| Receptor-only | -- | NOT COMPUTABLE | -- | -- | {h2_receptor['reason']} |
+| Hypothesis | Representation | n compounds | Spearman rho | p (one-sided) | p (two-sided) | Bootstrap 95% CI |
+|---|---|---|---|---|---|---|
+| H2a | Structure-only | {h2a['n_objects']} | {h2a['statistic_spearman_rho']:.3f} | {_fmt_p(h2a['p_value_one_sided'])} | {_fmt_p(h2a['p_value_two_sided'])} | see `artifacts/matrices/matrix_association_results.json` |
+| H2b | Combined (structure+receptor) | -- | NOT COMPUTABLE | -- | -- | {h2b['reason']} |
 
-No significant positive association between structural similarity and safety-phenotype similarity was found (Figure 7).
+H2a found no significant positive association between structural similarity and safety-phenotype similarity (Figure 7). H2b (whether combined structure+receptor explains more than structure alone) could not be tested, for the same receptor-sparsity reason as H1.
 
 ### Clustering comparison (SECONDARY)
 
@@ -627,11 +635,11 @@ Group sizes: **{n_misuse}** misuse-classified reports, **{n_therapeutic}** thera
 
 ### Multivariate association (EXPLORATORY, H4, molecular descriptors)
 
-**{n_sig_multivariate}/{len(multivariate['results'])}** AE categories showed a statistically significant (permutation p<0.05) Ridge-regression association with molecular descriptors; every category's leave-one-out cross-validated R^2 was negative (worse than predicting the mean), consistent with the H2 null finding via an independent method.
+**{n_sig_multivariate}/{len(multivariate['results'])}** AE categories showed a statistically significant (permutation p<0.05) Ridge-regression association with molecular descriptors; every category's leave-one-out cross-validated R^2 was negative (worse than predicting the mean), consistent with the H2a null finding via an independent method.
 
 ### Sensitivity analyses (Phase 11)
 
-**{n_sensitivity_computable}/{n_sensitivity_total}** pre-specified sensitivity variants were computable with current data; all computable variants remained non-significant and directionally consistent with the primary H2 result (Figure 10; full results in `artifacts/matrices/sensitivity_results.json`).
+**{n_sensitivity_computable}/{n_sensitivity_total}** pre-specified sensitivity variants were computable with current data; all computable variants remained non-significant and directionally consistent with the primary H2a result (Figure 10; full results in `artifacts/matrices/sensitivity_results.json`).
 """
 
     parts = [

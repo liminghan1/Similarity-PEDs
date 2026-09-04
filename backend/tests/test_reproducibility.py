@@ -1,6 +1,6 @@
 """Reproducibility test (Phase 9/15, TODO.md): same data + seed -> same primary result.
 
-Runs the actual H2 matrix-association computation (structure-only distance vs. safety distance,
+Runs the actual H2a matrix-association computation (structure-only distance vs. safety distance,
 the one fully computable representation of the pre-specified primary test -- see
 `reports/research_report.md`) twice against the real, committed distance-matrix artifacts and
 checks the two runs are bit-identical. Also checks the freshly-computed result matches the

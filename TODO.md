@@ -544,6 +544,27 @@ correction, documented as such, not silently folded in):
       `backend/tests/test_full_faers_background.py` (pure 2x2-arithmetic and reverse-mapping
       tests; the live-query function itself is exercised by the real run, not the test suite, per
       this project's established pattern of not hitting live external APIs in tests).
+- [x] **H1/H2 relabeling: split H2 into H2a/H2b, fixed H1's coded test to match its own text.**
+      `hypotheses.md`'s H1 statement was always "receptor pharmacology alone," but the
+      "Hypothesis-to-analysis mapping summary" table (and `analysis/matrix_association.py`'s
+      `TESTS` list) named the **combined** structure+receptor matrix as H1's primary test --
+      vulnerable to a reviewer asking "was the endpoint changed?" Separately, `hypotheses.md`'s
+      single H2 conflated "does structure alone predict safety similarity" (this project's actual
+      main computable secondary result) with "does combined structure+receptor outperform
+      structure alone" (a comparison of two results), sharing one operational
+      definition/falsifiability criterion that only cleanly fit the second claim. Fixed by
+      splitting H2 into **H2a** (structure-only, own full statement/null/operational-def/
+      falsifiability) and **H2b** (the original comparison, unchanged) and correcting H1's coded
+      test to receptor-only, matching its own text. Amendment log entries in `hypotheses.md` and
+      `research/analysis_plan.md`'s Deviations table. **No result changed**: H1's and H2b's
+      underlying tests (receptor-only, combined) were already computed and already both NOT
+      COMPUTABLE for the same receptor-sparsity reason regardless of label; H2a's test
+      (structure-only) was already computed and already reported under the "H2" name -- this is a
+      labeling/attribution fix, not a re-analysis. Propagated through
+      `analysis/matrix_association.py`, `analysis/generate_reports.py` (full Abstract/Introduction/
+      Methods/Results/Discussion/Conclusion pass), `backend/app/api/overview.py`'s `HYPOTHESES`
+      list (4 -> 5 entries; `test_api.py`'s count assertion updated to match), and the dashboard
+      (`/`, `/molecular-vs-safety`, `/methods`, `/limitations`). 250/250 tests passing.
 
 ---
 

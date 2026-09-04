@@ -7,8 +7,8 @@ router = APIRouter(prefix="/api/analysis", tags=["analysis"])
 
 @router.get("/matrix-association")
 def matrix_association() -> dict:
-    """H1 (PRIMARY, not computable with current data) and H2 (SECONDARY) matrix-association
-    results (Phase 9)."""
+    """H1 (PRIMARY, receptor-only, not computable with current data), H2a (SECONDARY,
+    structure-only), and H2b (SECONDARY, combined) matrix-association results (Phase 9)."""
     return load_json_artifact("matrix_association_results")
 
 

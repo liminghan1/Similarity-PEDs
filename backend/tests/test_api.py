@@ -158,7 +158,7 @@ class TestOverviewEndpoint:
         data = response.json()
         assert "similar real-world adverse-event reporting" in data["research_question"]
         assert len(data["aims"]) == 4
-        assert len(data["hypotheses"]) == 4
+        assert len(data["hypotheses"]) == 5  # H1, H2a, H2b, H3, H4
 
     def test_overview_dataset_sizes_reflect_real_data(self):
         response = client.get("/api/overview")

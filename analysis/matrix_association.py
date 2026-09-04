@@ -143,10 +143,17 @@ def mantel_test(
 
 ARTIFACTS_DIR = Path("artifacts/matrices")
 
+# Labels/descriptions match research/hypotheses.md as of its 2026-09-04 amendment (Amendment log):
+# H1 is receptor pharmacology alone (not combined) -- the mapping table previously named the
+# combined matrix as H1's primary test, which never matched H1's own statement/operational
+# definition text. H2 was split into H2a (structure-only, this project's main computable secondary
+# result) and H2b (the original structure-vs-combined comparison). No test result changed by this
+# relabeling: the receptor-only and combined tests were already both NOT COMPUTABLE for the same
+# receptor-sparsity reason regardless of which one carried the "PRIMARY" label.
 TESTS = [
-    ("PRIMARY", "H1: combined (structure+receptor) distance vs. safety distance", "combined_distance", "safety_distance"),
-    ("SECONDARY", "H2: structure-only distance vs. safety distance", "structure_distance", "safety_distance"),
-    ("SECONDARY", "H2: receptor-only distance vs. safety distance", "receptor_distance", "safety_distance"),
+    ("PRIMARY", "H1: receptor-only distance vs. safety distance", "receptor_distance", "safety_distance"),
+    ("SECONDARY", "H2a: structure-only distance vs. safety distance", "structure_distance", "safety_distance"),
+    ("SECONDARY", "H2b: combined (structure+receptor) distance vs. safety distance", "combined_distance", "safety_distance"),
 ]
 
 

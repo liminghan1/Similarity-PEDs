@@ -41,8 +41,9 @@ AIMS = [
 ]
 
 HYPOTHESES = [
-    {"id": "H1", "label": "PRIMARY", "statement": "Compounds more similar in receptor pharmacology will show more similar safety reporting profiles.", "status": "NOT COMPUTABLE with current receptor-bioactivity coverage."},
-    {"id": "H2", "label": "SECONDARY", "statement": "Structural similarity alone will explain less safety-profile variation than a combined structure+receptor representation.", "status": "Structure-only tested: no significant association found."},
+    {"id": "H1", "label": "PRIMARY", "statement": "Compounds more similar in receptor pharmacology will show more similar safety reporting profiles.", "status": "NOT COMPUTABLE with current receptor-bioactivity coverage (receptor-only distance vs. safety distance)."},
+    {"id": "H2a", "label": "SECONDARY", "statement": "Compounds more similar in molecular structure alone will show more similar safety reporting profiles.", "status": "Tested (n=10): no significant association found (Spearman rho=-0.293, one-sided p=0.956)."},
+    {"id": "H2b", "label": "SECONDARY", "statement": "Structural similarity alone will explain less safety-profile variation than a combined structure+receptor representation.", "status": "NOT COMPUTABLE: the combined representation requires the same receptor-bioactivity coverage H1 lacks."},
     {"id": "H3", "label": "SECONDARY", "statement": "Therapeutic-use-associated and misuse-associated reports will show measurably different safety reporting phenotypes.", "status": "Supported: significant differences found in seriousness, hospitalization, and AE-category patterns, surviving both FDR correction for multiple comparisons and a classifier-outcome-leakage-controlled sensitivity check."},
     {"id": "H4", "label": "EXPLORATORY", "statement": "Specific pharmacological features will associate with specific adverse-event categories.", "status": "Adapted to molecular descriptors (receptor data infeasible); no category showed a significant association."},
 ]
