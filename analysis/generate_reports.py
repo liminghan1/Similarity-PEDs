@@ -252,11 +252,15 @@ computational chemistry work has linked steroid structural features to *in vitro
 binding affinity (see `research/literature_review.md`), and a separate, more recent body of
 pharmacovigilance work has used FAERS to characterize AAS-related adverse-event reporting,
 including a 2026 study of fatal outcomes in AAS misuse and stacking (Heo et al., cited in
-`research/literature_review.md`). To our knowledge, following a first-pass structured literature
-search (not yet a formal systematic review -- see that file's "Outstanding work" section), no
-published study directly integrates AAS structural/receptor similarity with FAERS-derived safety
-reporting-profile similarity using a matrix-association framework. This project investigates that
-gap.
+`research/literature_review.md`). To our knowledge, following a structured literature search
+(general web search plus a formal PubMed E-utilities search across the required term list, with a
+backward/forward citation-graph check on the two closest papers -- not a PRISMA-grade systematic
+review with dual independent screening; see `research/literature_review.md` for the full search
+record), no published study directly integrates AAS structural/receptor similarity with
+FAERS-derived safety reporting-profile similarity using a matrix-association framework. The closest
+conceptual precedents are two 2024/2026 narrative reviews explicitly framed around linking AAS
+structure to outcomes (Wiacek & Zubrzycki 2026; Sinha et al. 2024), neither of which uses FAERS data
+or computes a quantitative similarity metric. This project investigates that gap.
 
 FAERS is a spontaneous, voluntary reporting system. Every result in this report describes a
 *reporting association*, not incidence, prevalence, or a causal clinical effect -- see Limitations.

@@ -1,6 +1,6 @@
 # Data Quality Report
 
-**Generated:** 2026-09-04T01:18:28.060974+00:00 at commit `04a1741` -- regenerate with `uv run python -m analysis.generate_reports` after any pipeline re-run (project brief Sec. 43).
+**Generated:** 2026-09-04T01:32:34.970903+00:00 at commit `3563110` -- regenerate with `uv run python -m analysis.generate_reports` after any pipeline re-run (project brief Sec. 43).
 
 ## Compound registry (Phases 3-4)
 

@@ -565,6 +565,26 @@ correction, documented as such, not silently folded in):
       Methods/Results/Discussion/Conclusion pass), `backend/app/api/overview.py`'s `HYPOTHESES`
       list (4 -> 5 entries; `test_api.py`'s count assertion updated to match), and the dashboard
       (`/`, `/molecular-vs-safety`, `/methods`, `/limitations`). 250/250 tests passing.
+- [x] **Formal literature-review pass 2 (`research/literature_review.md`)**, completing all four
+      items in Pass 1's "Outstanding work" checklist with real, recorded results (live HTTP calls,
+      not assumed): (1) formal PubMed search via NCBI E-utilities across all 11 required terms
+      (both the originally-specified 6 and the 5 broader terms), exact hit counts recorded per
+      term (0 to 1,694), every result under 100 hits individually screened by title; (2)
+      backward/forward citation search on the two closest papers (Heo et al. 2026 via OpenAlex --
+      12 references, all clinical/case-report literature; Vilar et al. 2016 via Semantic Scholar --
+      40 forward citations, all general-pharmacology, none AAS-specific); (3) a targeted
+      ChEMBL/BindingDB steroid-curation literature search (no paper found -- this project's own
+      receptor-coverage-gap finding is a first-hand observation, not independently corroborated);
+      (4) re-run after the primary analysis's results were known, with no new overlapping paper
+      surfaced. Surfaced 4 new real papers, most notably two 2024/2026 narrative reviews explicitly
+      framed around linking AAS structure to outcomes (Wiacek & Zubrzycki 2026; Sinha et al. 2024)
+      -- the closest conceptual precedents found, added to the findings table, and confirmed to be
+      qualitative/mechanistic syntheses rather than quantitative FAERS-linked similarity models.
+      Novelty-claim wording in both `literature_review.md` and `reports/research_report.md`'s
+      Introduction updated to cite the completed formal search and these closest precedents by
+      name, with an explicit, undiluted limitations section (single analyst, PubMed/MEDLINE only,
+      2 broad terms not exhaustively screened, citation-graph tools not authoritative) rather than
+      overclaiming systematic-review rigor.
 
 ---
 
