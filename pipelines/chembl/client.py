@@ -55,9 +55,15 @@ class ChemblClient:
         self._last_request_at = time.monotonic()
 
     @retry(
+        # 5 attempts / up to 30s backoff (widened from 3/10s on 2026-09-04 after a real CI
+        # failure: EBI's ChEMBL API was observed live, outside this pipeline, returning 500s and
+        # 60+ second response times across multiple endpoints/queries for several minutes -- a
+        # sustained degradation, not a sub-second blip, that the previous 3-attempt/10s-max budget
+        # could plausibly still exhaust. This does not fix the underlying EBI-side issue (nothing
+        # client-side can), only gives our own retries a realistic chance of outlasting it.
         retry=retry_if_exception(is_retryable_http_error),
-        stop=stop_after_attempt(3),
-        wait=wait_exponential(multiplier=1, min=1, max=10),
+        stop=stop_after_attempt(5),
+        wait=wait_exponential(multiplier=1, min=2, max=30),
         reraise=True,
     )
     def _get_absolute(self, url: str, params: dict | None = None) -> dict:
